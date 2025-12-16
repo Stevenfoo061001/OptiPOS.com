@@ -1,22 +1,115 @@
 <h3>Cashier</h3>
 
-<div class="row">
-  <div class="col-md-8">
-    <div id="productGrid" class="row g-2"></div>
-  </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>POS Cashier</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f4f4f4; }
+    .sidebar {
+      width:200px; background:#fff; height:100vh; border-right:1px solid #ddd;
+      padding:20px; position:fixed;
+    }
+    .sidebar h4 { margin-bottom:20px; }
+    .sidebar a {
+      display:block; color:#666; margin:10px 0; text-decoration:none;
+    }
+    .sidebar a.active { color:#2ecc71; font-weight:600; }
 
-  <div class="col-md-4">
-    <div class="card p-2">
-      <h5>Cart</h5>
-      <div id="cartList"></div>
+    .main { margin-left:200px; padding:20px; }
 
-      <div class="mt-2">
-        <label>Discount</label>
-        <input id="discount" class="form-control" value="0" type="number">
+    .panel { background:#e0e0e0; padding:20px; border-radius:4px; }
+    .pay-btn {
+      background:#fff; border:0; border-radius:6px;
+      padding:20px; width:100%; box-shadow:0 2px 4px rgba(0,0,0,.15);
+    }
+    .order-box { background:#fff; padding:15px; height:100%; }
+
+    .modal-backdrop { background:rgba(0,0,0,.3); }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h4>POS System</h4>
+  <a href="#">Home</a>
+  <a href="#">Member</a>
+  <a href="#" class="active">Cashier</a>
+  <a href="#">Report</a>
+  <a href="#">Stocks</a>
+  <a href="#">Transaction</a>
+  <a href="#">Add</a>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="d-flex justify-content-end mb-2">👤 Logout</div>
+
+  <div class="row g-3">
+    <!-- Left -->
+    <div class="col-md-8">
+      <div class="panel">
+        <h5>Member Points</h5>
+        <button class="pay-btn mb-3" data-bs-toggle="modal" data-bs-target="#pointsModal">Redeem Point</button>
+
+        <h5>Payment Method</h5>
+        <div class="row g-3">
+          <div class="col-4"><button class="pay-btn">Visa</button></div>
+          <div class="col-4"><button class="pay-btn">Credit Card</button></div>
+          <div class="col-4"><button class="pay-btn">Debit Card</button></div>
+          <div class="col-4"><button class="pay-btn">TnG</button></div>
+          <div class="col-4"><button class="pay-btn">Alipay</button></div>
+          <div class="col-4"><button class="pay-btn">Online Payment</button></div>
+          <div class="col-4"><button class="pay-btn" data-bs-toggle="modal" data-bs-target="#cashModal">Cash</button></div>
+        </div>
       </div>
+    </div>
 
-      <button id="checkoutBtn" class="btn btn-success w-100 mt-2">Checkout</button>
-      <div id="checkoutMsg" class="mt-2"></div>
+    <!-- Right Orders -->
+    <div class="col-md-4">
+      <div class="order-box">
+        <h5>Orders</h5>
+        <div id="cartList"></div>
+        <hr>
+        <div><small>Sub Total</small></div>
+        <div><small>Rounding</small></div>
+        <div><small>Tax</small></div>
+        <strong id="totalText">Total</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cash Modal -->
+<div class="modal fade" id="cashModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+      <p>Total:</p>
+      <p>Amount:</p>
+      <p>Change: Amount - Total</p>
+      <div class="text-end">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Points Modal -->
+<div class="modal fade" id="pointsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3 text-center">
+      <div class="mb-2">
+        <button class="btn btn-light rounded-pill">All Points</button>
+        <button class="btn btn-light rounded-pill">1000</button>
+        <button class="btn btn-light rounded-pill">500</button>
+      </div>
+      <div>
+        <button class="btn btn-light rounded-pill">300</button>
+        <button class="btn btn-light rounded-pill">100</button>
+      </div>
     </div>
   </div>
 </div>
