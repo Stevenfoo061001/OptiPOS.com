@@ -29,13 +29,6 @@
 </head>
 <body>
 
-<!-- Main -->
-<div class="main">
-  <div class="d-flex justify-content-end mb-2">
-  <a href="logout.php" class="btn btn-outline-danger btn-sm">Logout</a>
-</div>
-
-
   <div class="row g-3">
     <!-- Left -->
     <div class="col-md-8">
@@ -85,8 +78,8 @@
       </div>
 
       <div class="mb-2">
-        <label>Amount</label>
-        <input id="cashAmount" class="form-control" type="number">
+        <label>Cash Received</label>
+        <input id="cashAmount" class="form-control" type="Amount" min="0">
       </div>
 
       <div class="mb-2">
