@@ -92,14 +92,6 @@
 <!-- Main -->
 <div class="main">
 
-  <div class="top-bar">
-    <div></div>
-    <div class="d-flex align-items-center gap-2">
-      <div class="avatar" style="width:35px;height:35px;font-size:16px;">👤</div>
-      <a href="#" class="text-decoration-none">Logout</a>
-    </div>
-  </div>
-
   <div class="row">
     <!-- Left Profile -->
     <div class="col-md-5">
