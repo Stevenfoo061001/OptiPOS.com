@@ -4,49 +4,44 @@
   <meta charset="UTF-8" />
   <title>POS System - Employee Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     body { background:#e5e5e5; font-family: Arial, sans-serif; }
 
-    /* Sidebar */
     .sidebar {
-      width:220px;
-      height:100vh;
-      background:#fff;
-      position:fixed;
-      left:0; top:0;
-      border-right:1px solid #ddd;
-      padding:20px;
-    }
+  width:220px;
+  background:#fff;
+  height:100vh;
+  position:fixed;
+  left:0;
+  top:0;
+  border-right:1px solid #ddd;
+  padding:20px;
+}
 
-    .sidebar h5 {
-      font-weight:600;
-      margin-bottom:30px;
-    }
+.sidebar h5 {
+  font-weight:600;
+  margin-bottom:25px;
+}
 
-    .sidebar a {
-      display:block;
-      padding:10px 0;
-      color:#666;
-      text-decoration:none;
-      font-size:14px;
-    }
+.sidebar a {
+  display:block;
+  padding:10px 0;
+  color:#666;
+  text-decoration:none;
+  font-size:14px;
+}
 
-    .sidebar a.active {
-      color:#000;
-      font-weight:600;
-    }
+.sidebar a.active {
+  color:#2563eb;
+  font-weight:600;
+}
+
 
     /* Main */
     .main {
       margin-left:220px;
       padding:25px;
-    }
-
-    .top-bar {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:20px;
     }
 
     .profile-section {
@@ -89,7 +84,54 @@
 </head>
 <body>
 
-<!-- Main -->
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h5>POS System</h5>
+
+  <a href="index.php?page=home"
+     class="<?= ($_GET['page'] ?? '') === 'home' ? 'active' : '' ?>">
+     Home
+  </a>
+
+  <a href="index.php?page=cashier"
+     class="<?= ($_GET['page'] ?? '') === 'cashier' ? 'active' : '' ?>">
+     Cashier
+  </a>
+
+  <a href="index.php?page=products"
+     class="<?= ($_GET['page'] ?? '') === 'products' ? 'active' : '' ?>">
+     Products
+  </a>
+
+  <a href="index.php?page=members"
+     class="<?= ($_GET['page'] ?? '') === 'members' ? 'active' : '' ?>">
+     Members
+  </a>
+
+  <a href="index.php?page=transactions"
+     class="<?= ($_GET['page'] ?? '') === 'transactions' ? 'active' : '' ?>">
+     Transactions
+  </a>
+
+  <a href="index.php?page=reports"
+     class="<?= ($_GET['page'] ?? '') === 'reports' ? 'active' : '' ?>">
+     Reports
+  </a>
+
+  <a href="index.php?page=profile"
+     class="<?= ($_GET['page'] ?? '') === 'profile' ? 'active' : '' ?>">
+     Profile
+  </a>
+
+  <hr>
+
+  <a href="logout.php" style="color:#e11d48; font-weight:600;">
+    Logout
+  </a>
+</aside>
+
+
+<!-- MAIN -->
 <div class="main">
 
   <div class="row">
