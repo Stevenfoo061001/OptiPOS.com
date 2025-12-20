@@ -1,222 +1,111 @@
-<?php
-/* ================= LOAD DATA ================= */
-$transactionsFile = __DIR__ . '/../data/transactions.json';
-$productsFile     = __DIR__ . '/../data/products.json';
-
-$transactions = file_exists($transactionsFile)
-  ? json_decode(file_get_contents($transactionsFile), true)
-  : [];
-
-$products = file_exists($productsFile)
-  ? json_decode(file_get_contents($productsFile), true)
-  : [];
-
-if (!is_array($transactions)) $transactions = [];
-if (!is_array($products)) $products = [];
-
-/* ================= SALES SUMMARY ================= */
-$totalSales = 0;
-$totalTax = 0;
-$totalDiscount = 0;
-
-foreach ($transactions as $t) {
-  $totalSales += $t['total'];
-  $totalTax += $t['tax'];
-  $totalDiscount += $t['discount'];
-}
-
-/* ================= SALES BY DATE ================= */
-$salesByDate = [];
-foreach ($transactions as $t) {
-  $date = substr($t['date'], 0, 10);
-  if (!isset($salesByDate[$date])) {
-    $salesByDate[$date] = 0;
-  }
-  $salesByDate[$date] += $t['total'];
-}
-
-/* ================= PAYMENT SUMMARY ================= */
-$paymentSummary = [];
-foreach ($transactions as $t) {
-  $paymentSummary[$t['payment']] =
-    ($paymentSummary[$t['payment']] ?? 0) + $t['total'];
-}
-
-/* ================= LOW STOCK ================= */
-$lowStock = array_filter($products, fn($p) => $p['quantity'] <= 10);
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Reports</title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-
-<div class="app-layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header"><h2>POS System</h2></div>
-    <nav class="sidebar-menu">
-      <a href="index.php?page=home">Home</a>
-      <a href="index.php?page=cashier">Cashier</a>
-      <a href="index.php?page=products">Products</a>
-      <a href="index.php?page=members">Members</a>
-      <a href="index.php?page=transactions">Transactions</a>
-      <a href="index.php?page=reports" class="active">Reports</a>
-      <a href="index.php?page=profile">Profile</a>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main-content">
-    <h1>Reports</h1>
-
-    <button class="chart-btn" onclick="toggleCharts()">
-      📊 View Charts
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Sales Reports</h3>
+    <button class="btn btn-sm btn-outline-secondary" onclick="renderReport()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
     </button>
-
-    <!-- SUMMARY -->
-    <div class="report-card">
-      <h2>Sales Summary</h2>
-      <div class="report-grid">
-        <div>Total Sales<br><strong>RM <?= number_format($totalSales,2) ?></strong></div>
-        <div>Transactions<br><strong><?= count($transactions) ?></strong></div>
-        <div>Tax Collected<br><strong>RM <?= number_format($totalTax,2) ?></strong></div>
-        <div>Discount Given<br><strong>RM <?= number_format($totalDiscount,2) ?></strong></div>
-      </div>
-    </div>
-
-    <!-- TABLE VIEW -->
-    <div id="tableView">
-
-      <div class="report-card">
-        <h2>Sales by Date</h2>
-        <table class="report-table">
-          <tr><th>Date</th><th>Total</th></tr>
-          <?php foreach ($salesByDate as $d => $v): ?>
-            <tr>
-              <td><?= $d ?></td>
-              <td>RM <?= number_format($v,2) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </table>
-      </div>
-
-      <div class="report-card">
-        <h2>Payment Methods</h2>
-        <table class="report-table">
-          <tr><th>Method</th><th>Total</th></tr>
-          <?php foreach ($paymentSummary as $m => $v): ?>
-            <tr>
-              <td><?= $m ?></td>
-              <td>RM <?= number_format($v,2) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </table>
-      </div>
-
-      <div class="report-card">
-        <h2>Low Stock Items</h2>
-        <?php if (empty($lowStock)): ?>
-          <p>No low stock items 🎉</p>
-        <?php else: ?>
-          <table class="report-table">
-            <tr><th>Product</th><th>Stock</th></tr>
-            <?php foreach ($lowStock as $p): ?>
-              <tr class="low-stock">
-                <td><?= htmlspecialchars($p['name']) ?></td>
-                <td><?= $p['quantity'] ?> ⚠</td>
-              </tr>
-            <?php endforeach; ?>
-          </table>
-        <?php endif; ?>
-      </div>
-
-    </div>
-
-    <!-- CHART VIEW -->
-    <div id="chartView" style="display:none;">
-      <div class="chart-tabs">
-        <button class="chart-tab active" onclick="showChart('sales')">Sales</button>
-        <button class="chart-tab" onclick="showChart('payment')">Payments</button>
-      </div>
-
-      <div class="chart-box" id="salesChartBox">
-        <canvas id="salesChart"></canvas>
-      </div>
-
-      <div class="chart-box" id="paymentChartBox" style="display:none;">
-        <canvas id="paymentChart"></canvas>
-      </div>
-    </div>
-
-  </main>
 </div>
 
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title text-muted small mb-3">REVENUE (LAST 30 DAYS)</h5>
+                <canvas id="salesChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="text-muted small fw-bold">TOTAL REVENUE (Visible)</div>
+                <h2 class="text-primary mt-2" id="totalRevenue">RM 0.00</h2>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+             <div class="card-body">
+                <div class="text-muted small fw-bold">BEST SALES DAY</div>
+                <h4 class="mt-2" id="bestDay">—</h4>
+                <div class="text-success small" id="bestDayTotal">RM 0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const salesData = <?= json_encode($salesByDate) ?>;
-const paymentData = <?= json_encode($paymentSummary) ?>;
+let chartInstance = null;
 
-let salesChart, paymentChart;
+async function renderReport() {
+    try {
+        const res = await fetch('/api/reports.php');
+        const data = await res.json();
 
-function toggleCharts() {
-  document.getElementById("tableView").style.display = "none";
-  document.getElementById("chartView").style.display = "block";
-  renderCharts();
+        if (!data || data.length === 0) {
+            console.warn("No data for reports");
+            return;
+        }
+
+        // Prepare Arrays for Chart
+        const labels = data.map(d => d.date);
+        const values = data.map(d => parseFloat(d.total_sales));
+
+        // Calculate Summary Stats
+        const totalRev = values.reduce((a, b) => a + b, 0);
+        document.getElementById('totalRevenue').innerText = 'RM ' + totalRev.toFixed(2);
+
+        // Find Best Day
+        let maxVal = -1;
+        let maxDay = '';
+        data.forEach(d => {
+            if (parseFloat(d.total_sales) > maxVal) {
+                maxVal = parseFloat(d.total_sales);
+                maxDay = d.date;
+            }
+        });
+        document.getElementById('bestDay').innerText = maxDay;
+        document.getElementById('bestDayTotal').innerText = 'RM ' + maxVal.toFixed(2);
+
+        // Render Chart
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        // Destroy old chart if refreshing
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'line', // 'line' is often better for trends than 'bar'
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily Revenue (RM)',
+                    data: values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3 // Smooth curves
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return 'RM ' + value; }
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (err) {
+        console.error("Failed to load report", err);
+    }
 }
 
-function showChart(type) {
-  document.getElementById("salesChartBox").style.display =
-    type === "sales" ? "block" : "none";
-  document.getElementById("paymentChartBox").style.display =
-    type === "payment" ? "block" : "none";
-
-  document.querySelectorAll(".chart-tab").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
-}
-
-function renderCharts() {
-  if (!salesChart) {
-    salesChart = new Chart(document.getElementById("salesChart"), {
-      type: "bar",
-      data: {
-        labels: Object.keys(salesData),
-        datasets: [{
-          label: "Sales (RM)",
-          data: Object.values(salesData),
-          backgroundColor: "#2563eb"
-        }]
-      },
-      options: { responsive:true, maintainAspectRatio:false }
-    });
-  }
-
-  if (!paymentChart) {
-    paymentChart = new Chart(document.getElementById("paymentChart"), {
-      type: "pie",
-      data: {
-        labels: Object.keys(paymentData),
-        datasets: [{
-          data: Object.values(paymentData),
-          backgroundColor: [
-            "#16a34a","#2563eb","#f59e0b","#ef4444","#9333ea"
-          ]
-        }]
-      },
-      options: { responsive:true, maintainAspectRatio:false }
-    });
-  }
-}
+renderReport();
 </script>
-
-<script src="../assets/js/auth.js"></script>
-</body>
-</html>

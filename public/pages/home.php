@@ -1,190 +1,94 @@
-<?php
-// IMPORTANT: session_start() MUST already be in index.php
-// Do NOT put session_start() here
+<?php if (!empty($error)): ?>
+  <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
 
-/* ---------- CART INITIALISATION ---------- */
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-}
-
-/* ---------- LOAD PRODUCTS FROM JSON ---------- */
-$productsFile = __DIR__ . '/../data/products.json';
-
-if (!file_exists($productsFile)) {
-    die("products.json NOT FOUND");
-}
-
-$products = json_decode(file_get_contents($productsFile), true);
-
-if (!$products) {
-    die("products.json EMPTY or INVALID");
-}
-
-/* ---------- ADD TO CART (POST) ---------- */
-if (isset($_POST['add'])) {
-    $productId = $_POST['add'];
-
-    foreach ($products as $product) {
-        if ($product['stockId'] === $productId) {
-
-            if (!isset($_SESSION['cart'][$productId])) {
-                $_SESSION['cart'][$productId] = [
-                    'id'    => $product['stockId'],
-                    'name'  => $product['name'],
-                    'price' => $product['unitPrice'],
-                    'qty'   => 1
-                ];
-            } else {
-                $_SESSION['cart'][$productId]['qty']++;
-            }
-
-            break;
-        }
-    }
-}
-
-/* ---------- UPDATE CART QTY ---------- */
-if (isset($_POST['increase'])) {
-    $id = $_POST['increase'];
-    if (isset($_SESSION['cart'][$id])) {
-        $_SESSION['cart'][$id]['qty']++;
-    }
-}
-
-if (isset($_POST['decrease'])) {
-    $id = $_POST['decrease'];
-    if (isset($_SESSION['cart'][$id])) {
-        $_SESSION['cart'][$id]['qty']--;
-
-        if ($_SESSION['cart'][$id]['qty'] <= 0) {
-            unset($_SESSION['cart'][$id]);
-        }
-    }
-}
-
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Home</title>
-  <link rel="stylesheet" href="../assets/css/app.css">
-</head>
-<body>
-
-<div class="app-layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>POS System</h2>
-    </div>
-
-    <nav class="sidebar-menu">
-      <a href="index.php?page=home" class="active">Home</a>
-      <a href="index.php?page=cashier">Cashier</a>
-      <a href="index.php?page=products">Products</a>
-      <a href="index.php?page=members">Members</a>
-      <a href="index.php?page=transactions">Transactions</a>
-      <a href="index.php?page=reports">Reports</a>
-      <a href="index.php?page=profile">Profile</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
-
-    <h1>Home</h1>
-
-    <div class="home-layout">
-
-      <!-- PRODUCT GRID -->
-      <section class="products-grid">
-        <?php foreach ($products as $product): ?>
-          <form method="post" class="product-card-form">
-            <input type="hidden" name="add" value="<?= $product['stockId'] ?>">
-            <button type="submit" class="product-card-btn">
-              <h3><?= htmlspecialchars($product['name']) ?></h3>
-              <p>RM <?= number_format($product['unitPrice'], 2) ?></p>
-            </button>
-          </form>
-        <?php endforeach; ?>
-      </section>
-
-      <!-- ORDER PANEL -->
-      <aside class="order-panel">
-        <h2>Orders</h2>
-
-        <?php $subtotal = 0; ?>
-
-       <?php foreach ($_SESSION['cart'] as $item): ?>
-  <div class="order-item">
-    <div>
-      <strong><?= htmlspecialchars($item['name']) ?></strong>
-
-      <div class="qty-controls">
-        <form method="post">
-          <button type="submit" name="decrease" value="<?= $item['id'] ?>">−</button>
-        </form>
-
-        <span class="qty-value"><?= $item['qty'] ?></span>
-
-
-        <form method="post">
-          <button type="submit" name="increase" value="<?= $item['id'] ?>">+</button>
-        </form>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card p-3 shadow-sm border-start border-4 border-primary">
+      <div class="text-muted small text-uppercase fw-bold">Products</div>
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div id="k_products" class="h3 mb-0">—</div>
+        <i class="bi bi-box-seam text-primary fs-4"></i>
       </div>
-    </div>
-
-    <div class="price">
-      RM <?= number_format($item['price'] * $item['qty'], 2) ?>
     </div>
   </div>
 
-  <?php $subtotal += $item['price'] * $item['qty']; ?>
-<?php endforeach; ?>
-
-
-        <hr>
-
-        <?php
-        $tax   = $subtotal * 0.06;
-        $total = $subtotal + $tax;
-        ?>
-
-        <div class="summary-row">
-          <span>Subtotal</span>
-          <span>RM <?= number_format($subtotal, 2) ?></span>
-        </div>
-
-        <div class="summary-row">
-          <span>Tax (6%)</span>
-          <span>RM <?= number_format($tax, 2) ?></span>
-        </div>
-
-        <div class="summary-row total">
-          <span>Total</span>
-          <span>RM <?= number_format($total, 2) ?></span>
-        </div>
-
-       <form action="index.php?page=cashier" method="post">
-            <button class="checkout-btn" <?= empty($_SESSION['cart']) ? 'disabled' : '' ?>>
-            Checkout
-            </button>
-        </form>
-
-      </aside>
-
+  <div class="col-md-3">
+    <div class="card p-3 shadow-sm border-start border-4 border-info">
+      <div class="text-muted small text-uppercase fw-bold">Members</div>
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div id="k_members" class="h3 mb-0">—</div>
+        <i class="bi bi-people text-info fs-4"></i>
+      </div>
     </div>
-  </main>
+  </div>
 
+  <div class="col-md-3">
+    <div class="card p-3 shadow-sm border-start border-4 border-success">
+      <div class="text-muted small text-uppercase fw-bold">Transactions</div>
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div id="k_tx" class="h3 mb-0">—</div>
+        <i class="bi bi-receipt text-success fs-4"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card p-3 shadow-sm border-start border-4 border-danger">
+      <div class="text-muted small text-uppercase fw-bold">Low Stock (< 10)</div>
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div id="k_low" class="h3 mb-0 text-danger">—</div>
+        <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="../assets/js/auth.js"></script>
-</body>
-</html>
+<hr class="my-4">
+
+<div class="row">
+    <div class="col-md-6">
+        <p class="text-muted small text-uppercase fw-bold mb-3">Quick Actions</p>
+        <div class="d-flex gap-2 flex-wrap">
+          <a class="btn btn-primary" href="?page=cashier">
+            <i class="bi bi-cart"></i> Open Cashier
+          </a>
+          <a class="btn btn-outline-secondary" href="?page=products">
+            <i class="bi bi-list-check"></i> Manage Products
+          </a>
+          <a class="btn btn-outline-secondary" href="?page=members">
+            <i class="bi bi-person-plus"></i> Add Member
+          </a>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <p class="text-muted small text-uppercase fw-bold mb-3">System Status</p>
+        <div class="alert alert-light border small">
+            <i class="bi bi-database-check text-success me-2"></i> Connected to PostgreSQL
+            <br>
+            <i class="bi bi-clock text-muted me-2"></i> <?= date('Y-m-d H:i:s') ?>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadDashboard(){
+    try {
+        // Fetch only the counts (lightweight), not the full data lists
+        const response = await fetch('/api/dashboard.php');
+        const data = await response.json();
+
+        // Animate numbers (simple implementation)
+        document.getElementById('k_products').innerText = data.products;
+        document.getElementById('k_members').innerText = data.members;
+        document.getElementById('k_tx').innerText = data.transactions;
+        document.getElementById('k_low').innerText = data.low_stock;
+        
+    } catch (err) {
+        console.error("Dashboard load failed", err);
+    }
+}
+
+loadDashboard();
+</script>

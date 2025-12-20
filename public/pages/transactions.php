@@ -1,181 +1,79 @@
-<?php
-// Load transactions from JSON
-$transactionsFile = __DIR__ . '/../data/transactions.json';
-
-if (!file_exists($transactionsFile)) {
-    $transactions = [];
-} else {
-    $transactions = json_decode(file_get_contents($transactionsFile), true);
-    if (!is_array($transactions)) {
-        $transactions = [];
-    }
-}
-?>
-
-<link rel="stylesheet" href="../assets/css/app.css">
-<script src="../assets/js/auth.js"></script>
-
-<div class="app-layout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>POS System</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Transaction History</h3>
+    <div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="loadTx()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
     </div>
-
-    <nav class="sidebar-menu">
-      <a href="index.php?page=home">Home</a>
-      <a href="index.php?page=cashier">Cashier</a>
-      <a href="index.php?page=products">Products</a>
-      <a href="index.php?page=members">Members</a>
-      <a href="index.php?page=transactions" class="active">Transactions</a>
-      <a href="index.php?page=reports">Reports</a>
-      <a href="index.php?page=profile">Profile</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
-    <h1>Transactions</h1>
-
-    <div class="transactions-layout">
-
-      <!-- LEFT: TRANSACTION LIST -->
-      <aside class="transaction-list">
-        <h2>Transaction History</h2>
-        <input
-        type="text"
-        id="transactionSearch"
-        placeholder="Search transaction..."
-        class="transaction-search"
-        >
-
-        <?php if (empty($transactions)): ?>
-          <p>No transactions found</p>
-        <?php else: ?>
-          <?php foreach ($transactions as $index => $trx): ?>
-            <div class="transaction-item <?= $index === 0 ? 'active' : '' ?>"
-                 data-index="<?= $index ?>">
-              <strong><?= htmlspecialchars($trx['id']) ?></strong>
-              <div class="trx-date">
-                <?= htmlspecialchars($trx['date']) ?>
-              </div>
-            </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
-      </aside>
-
-      <!-- RIGHT: RECEIPT -->
-      <section class="receipt-panel">
-        <h2>Receipt</h2>
-
-        <div id="receiptItems"></div>
-
-        <hr>
-
-        <div class="summary-row">
-          <span>Subtotal</span>
-          <span id="rSubtotal">RM 0.00</span>
-        </div>
-
-        <div class="summary-row">
-          <span>Tax</span>
-          <span id="rTax">RM 0.00</span>
-        </div>
-
-        <div class="summary-row">
-          <span>Discount</span>
-          <span id="rDiscount">- RM 0.00</span>
-        </div>
-
-        <div class="summary-row total">
-          <span>Total</span>
-          <span id="rTotal">RM 0.00</span>
-        </div>
-
-        <p class="payment-info">
-          Payment: <strong id="rPayment">-</strong>
-        </p>
-
-        <button class="print-btn" onclick="window.print()">Print Receipt</button>
-      </section>
-
-    </div>
-  </main>
-
 </div>
 
-<!-- ================= JS (T2) ================= -->
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Trans ID</th>
+                    <th>Date</th>
+                    <th>Cashier</th>
+                    <th>Method</th>
+                    <th class="text-end">Total (RM)</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody id="txTableBody">
+                <tr><td colspan="6" class="text-center p-3">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
-const transactions = <?= json_encode($transactions) ?>;
+async function loadTx() {
+    try {
+        const res = await fetch('/api/transactions.php');
+        const data = await res.json();
+        const tbody = document.getElementById('txTableBody');
 
-const itemsBox   = document.getElementById("receiptItems");
-const subtotalEl = document.getElementById("rSubtotal");
-const taxEl      = document.getElementById("rTax");
-const discountEl = document.getElementById("rDiscount");
-const totalEl    = document.getElementById("rTotal");
-const paymentEl  = document.getElementById("rPayment");
+        if (!data || data.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-muted">No transactions found.</td></tr>'; 
+            return; 
+        }
 
-function renderReceipt(index) {
-  const trx = transactions[index];
-  if (!trx) return;
+        tbody.innerHTML = data.map(t => `
+            <tr>
+                <td class="ps-3 text-primary small">${t.transactionid}</td>
+                <td>${t.paymentdate}</td>
+                <td>${t.cashier_name || 'Admin'}</td>
+                <td><span class="badge bg-light text-dark border">${t.paymentmethod}</span></td>
+                <td class="text-end fw-bold">${Number(t.total_order_value).toFixed(2)}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-info" onclick="viewReceipt('${t.orderid}')">
+                        View Items
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        document.getElementById('txTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>';
+    }
+}
 
-  itemsBox.innerHTML = "";
-
-  trx.items.forEach(item => {
-    const row = document.createElement("div");
-    row.className = "receipt-item";
-    row.innerHTML = `
-      <span>${item.name} x ${item.qty}</span>
-      <span>RM ${(item.price * item.qty).toFixed(2)}</span>
+// Function to view specific items in an order
+window.viewReceipt = async function(orderId) {
+    // We can use a quick fetch to a new endpoint or just show a placeholder for now
+    // Ideally, you would create api/order_details.php?id=...
+    showModal('Order Details', `Loading items for Order #${orderId}...`);
+    
+    // FETCH ITEMS (Optional: requires a new API endpoint)
+    // For now, let's just show the ID
+    const body = `
+        <div class="text-center my-3">
+            <p>Receipt detail viewing requires a dedicated API endpoint.</p>
+            <strong>Order ID: ${orderId}</strong>
+        </div>
     `;
-    itemsBox.appendChild(row);
-  });
+    showModal(`Receipt for Order #${orderId}`, body, '<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>');
+};
 
-  subtotalEl.textContent = `RM ${trx.subtotal.toFixed(2)}`;
-  taxEl.textContent      = `RM ${trx.tax.toFixed(2)}`;
-  discountEl.textContent = `- RM ${trx.discount.toFixed(2)}`;
-  totalEl.textContent    = `RM ${trx.total.toFixed(2)}`;
-  paymentEl.textContent  = trx.payment;
-}
-
-// Load first transaction by default
-if (transactions.length > 0) {
-  renderReceipt(0);
-}
-
-// Click to change receipt
-document.querySelectorAll(".transaction-item").forEach(item => {
-  item.addEventListener("click", () => {
-    document.querySelectorAll(".transaction-item")
-      .forEach(i => i.classList.remove("active"));
-
-    item.classList.add("active");
-    renderReceipt(item.dataset.index);
-  });
-});
-</script>
-
-<script>
-const searchInput = document.getElementById("transactionSearch");
-
-searchInput.addEventListener("input", () => {
-  const keyword = searchInput.value.toLowerCase();
-
-  document.querySelectorAll(".transaction-item").forEach(item => {
-    const index = item.dataset.index;
-    const trx = transactions[index];
-
-    const match =
-      trx.id.toLowerCase().includes(keyword) ||
-      trx.payment.toLowerCase().includes(keyword) ||
-      (trx.memberId && trx.memberId.toLowerCase().includes(keyword));
-
-    item.style.display = match ? "block" : "none";
-  });
-});
+loadTx();
 </script>
