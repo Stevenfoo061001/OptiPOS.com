@@ -1,0 +1,107 @@
+-----------------------------------------------------------
+READ ME
+-----------------------------------------------------------
+1. download PostgreSQL from any browser
+2. go to windows search
+3. search for "pgadmin" and open it
+4. click on Servers, u will see alot of things come out and click on Databases
+5. u will see a postgres under Databases, right-click it and look for Query tool
+6. copy paste all the SQL below to create tables
+
+|
+v
+
+For php codes:
+1. if u see api folder, all the files have intergrated with PostgreSQL
+2. if u have done all above, visit all files in the api folder so u see a line like ( $password = "skittle3699"; )
+3. change the password into your own password, where is what u registered in PostgreSQL
+4. if u forgot, i cannot help u la
+
+-----------------------------------------------------------
+
+
+CREATE TABLE cashier(
+    cashierid VARCHAR(7) PRIMARY KEY,
+    name VARCHAR(20) NOT NUL,
+    phone VARCHAR(15) NOT NUL,
+    email VARCHAR(30) NOT NULL UNIQUE,
+    loginpassword VARCHAR(20) NOT NULLL
+);
+
+CREATE TABLE admin(
+    adminid VARCHAR(7) PRIMARY KEY,
+    name VARCHAR(20) NOT NUL,
+    phone VARCHAR(15) NOT NUL,
+    email VARCHAR(30) NOT NULL UNIQUE,
+    loginpassword VARCHAR(20) NOT NULLL
+);
+
+CREATE TABLE member (
+    MemberID VARCHAR(7) PRIMARY KEY,
+    Name VARCHAR(20) NOT NULL,
+    Phone VARCHAR(15) NOT NULL,
+    Email VARCHAR(30) NOT NULL UNIQUE,
+    DateIssued DATE NOT NULL DEFAULT CURRENT_DATE,
+    DateExpired DATE NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '1 year'),
+    Points INT NOT NULL DEFAULT 0 CHECK (Points >= 0)
+);
+
+
+
+CREATE TABLE orders (
+    OrderID VARCHAR(7) PRIMARY KEY,
+    TotalPrice DECIMAL(8,2),
+    OrderAmount INT,
+    OrderDate DATE,
+    Tax DECIMAL(8,2),
+    DiscountPrice DECIMAL(8,2),
+    GrandPrice DECIMAL(8,2),
+    MemberID VARCHAR(7),
+    CONSTRAINT fk_member
+        FOREIGN KEY (MemberID)
+        REFERENCES member(MemberID)
+);
+
+CREATE TABLE transactions (
+    TransactionID VARCHAR(7) PRIMARY KEY,
+    AmountPaid DECIMAL(8,2),
+    PaymentDate DATE,
+    PaymentMethod VARCHAR(20),
+    Status VARCHAR(20),
+    OrderID VARCHAR(7),
+    CashierID VARCHAR(7),
+    CONSTRAINT fk_order
+        FOREIGN KEY (OrderID)
+        REFERENCES orders(OrderID),
+    CONSTRAINT fk_cashier
+        FOREIGN KEY (CashierID)
+        REFERENCES cashier(CashierID)
+);
+
+CREATE TABLE stock (
+    StockID VARCHAR(7) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    UnitPrice DECIMAL(8,2) NOT NULL,
+    Quantity INT NOT NULL,
+    Category VARCHAR(20),
+    AdminID VARCHAR(7),
+    CONSTRAINT fk_admin
+        FOREIGN KEY (AdminID)
+        REFERENCES admin(AdminID)
+);
+
+CREATE TABLE order_item (
+    OrderID VARCHAR(7) NOT NULL,
+    StockID VARCHAR(7) NOT NULL,
+    UnitPrice DECIMAL(8,2) NOT NULL,
+    Quantity INT NOT NULL,
+    CONSTRAINT pk_order_item
+        PRIMARY KEY (OrderID, StockID),
+    CONSTRAINT fk_order
+        FOREIGN KEY (OrderID)
+        REFERENCES orders(OrderID),
+    CONSTRAINT fk_stock
+        FOREIGN KEY (StockID)
+        REFERENCES stock(StockID)
+);
+
