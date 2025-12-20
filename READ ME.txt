@@ -22,18 +22,18 @@ For php codes:
 
 CREATE TABLE cashier(
     cashierid VARCHAR(7) PRIMARY KEY,
-    name VARCHAR(20) NOT NUL,
-    phone VARCHAR(15) NOT NUL,
+    name VARCHAR(20) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
     email VARCHAR(30) NOT NULL UNIQUE,
-    loginpassword VARCHAR(20) NOT NULLL
+    loginpassword VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE admin(
     adminid VARCHAR(7) PRIMARY KEY,
-    name VARCHAR(20) NOT NUL,
-    phone VARCHAR(15) NOT NUL,
+    name VARCHAR(20) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
     email VARCHAR(30) NOT NULL UNIQUE,
-    loginpassword VARCHAR(20) NOT NULLL
+    loginpassword VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE member (
