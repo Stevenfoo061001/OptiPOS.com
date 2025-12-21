@@ -37,45 +37,60 @@ try {
 $username = trim($input['username']);
 $plainPassword = $input['password'];
 
-// Query admin table
+// Helper to verify password (supports hashed passwords and plain text)
+function verifyPassword($plain, $stored) {
+    if (!$stored) return false;
+    // If stored looks like a bcrypt hash, use password_verify
+    if (preg_match('/^\$2[ayb]\$[0-9]{2}\$/', $stored)) {
+        return password_verify($plain, $stored);
+    }
+    // Fallback to plain text comparison
+    return $plain === $stored;
+}
+
+// Try to find admin
 $stmt = $pdo->prepare("
-    SELECT adminid, name, loginpassword
+    SELECT adminid AS id, name, loginpassword
     FROM admin
     WHERE name = :username
     LIMIT 1
 ");
 $stmt->execute([':username' => $username]);
-$userRow = $stmt->fetch();
+$admin = $stmt->fetch();
 
-if (!$userRow) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Invalid username or password']);
+// Try to find cashier
+$stmt = $pdo->prepare("
+    SELECT cashierid AS id, name, loginpassword
+    FROM cashier
+    WHERE name = :username
+    LIMIT 1
+");
+$stmt->execute([':username' => $username]);
+$cashier = $stmt->fetch();
+
+// Determine which account to use (prefer admin if both exist)
+$account = null;
+$role = null;
+if ($admin) {
+    $account = $admin;
+    $role = 'admin';
+} elseif ($cashier) {
+    $account = $cashier;
+    $role = 'cashier';
+}
+
+// Validate password and set session
+if ($account && verifyPassword($plainPassword, $account['loginpassword'])) {
+    $_SESSION['user'] = [
+        'id' => $account['id'],
+        'name' => $account['name'],
+        'role' => $role
+    ];
+    echo json_encode(['success' => true, 'user' => $_SESSION['user']]);
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| PASSWORD CHECK
-|--------------------------------------------------------------------------
-*/
-
-// ✅ Plain text version (simple)
-if ($plainPassword !== $userRow['loginpassword']) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Invalid username or password']);
-    exit;
-}
-
-// Set session
-$_SESSION['user'] = [
-    'id'   => $userRow['adminid'],
-    'username' => $userRow['name'],
-    'name' => $userRow['name'],
-    'role' => 'admin'
-];
-
-// Success response
-echo json_encode([
-    'success' => true,
-    'user' => $_SESSION['user']
-]);
+// Authentication failed
+http_response_code(401);
+echo json_encode(['success' => false, 'error' => 'Invalid username or password']);
+exit;
