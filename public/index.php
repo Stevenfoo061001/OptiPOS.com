@@ -102,13 +102,9 @@ if ($user && ($user['role'] ?? '') !== 'admin' && in_array($page, $adminOnlyPage
       </nav>
 
       <?php if ($user): ?>
-        <div class="muted">Signed in as</div>
+        <div class="muted">Logged in as</div>
         <div class="fw-semibold"><?= htmlspecialchars($user['name']) ?></div>
         <div class="text-muted small"><?= htmlspecialchars($user['role']) ?></div>
-      <?php else: ?>
-        <div class="mt-3">
-          <a class="btn btn-sm btn-outline-primary" href="?page=login">Sign in</a>
-        </div>
       <?php endif; ?>
     </aside>
 
@@ -125,7 +121,6 @@ if ($user && ($user['role'] ?? '') !== 'admin' && in_array($page, $adminOnlyPage
                 'transactions'=>'Transactions',
                 'reports'=>'Reports',
                 'profile'=>'Profile',
-                'login'=>'Sign in'
               ];
               $title = $titles[$page] ?? 'OptiPOS';
             ?>
@@ -142,8 +137,7 @@ if ($user && ($user['role'] ?? '') !== 'admin' && in_array($page, $adminOnlyPage
                 <div class="muted small"><?= htmlspecialchars($user['role']) ?></div>
               </div>
               <button id="logoutBtn" class="btn btn-outline-secondary btn-sm">Logout</button>
-            <?php else: ?>
-              <a href="?page=login" class="btn btn-primary btn-sm">Login</a>
+      
             <?php endif; ?>
           </div>
         </div>
@@ -169,7 +163,7 @@ if ($user && ($user['role'] ?? '') !== 'admin' && in_array($page, $adminOnlyPage
   <script>
     // logout handler
     document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
-      const r = await fetch('/api/logout.php');
+      const r = await fetch('api/logout.php');
       const j = await r.json();
       if (j.success) location.href='?page=home';
     });
