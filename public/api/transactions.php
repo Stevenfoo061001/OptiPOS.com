@@ -1,68 +1,34 @@
 <?php
-// public/api/transactions.php
+require_once __DIR__ . '/../../config/db.php';
+
 header('Content-Type: application/json');
-session_start();
 
-// Check if user is logged in
-if (empty($_SESSION['user'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
+$sql = "
+    SELECT
+        t.transactionid,
+        t.orderid,
+        t.userid,
+        t.paymentmethod,
+        t.amountpaid,
+        t.payment_date,
+        t.payment_time,
+        t.status,
 
-// Database Connection
-$host = "localhost";
-$port = "5432";
-$dbname = "postgres";
-$user = "postgres";
-$password = "skittle3699"; 
+        o.subtotal,
+        o.tax,
+        o.discount,
+        o.grandtotal,
+        o.memberid,
 
-try {
-    $pdo = new PDO(
-        "pgsql:host=$host;port=$port;dbname=$dbname",
-        $user,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-    );
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
-    exit;
-}
+        m.name AS member_name,
+        m.points AS member_points
+    FROM transactions t
+    JOIN orders o ON t.orderid = o.orderid
+    LEFT JOIN member m ON o.memberid = m.memberid
+    ORDER BY t.payment_date DESC, t.payment_time DESC
+";
 
-$method = $_SERVER['REQUEST_METHOD'];
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
 
-if ($method === 'GET') {
-    // We join transactions with orders to get the total price and tax info
-    // We also join cashier to see who handled it
-    $sql = "
-        SELECT 
-            t.transactionid,
-            t.paymentdate,
-            t.paymentmethod,
-            t.amountpaid,
-            t.status,
-            o.orderid,
-            o.grandprice as total_order_value,
-            c.name as cashier_name
-        FROM transactions t
-        JOIN orders o ON t.orderid = o.orderid
-        LEFT JOIN cashier c ON t.cashierid = c.cashierid
-        ORDER BY t.paymentdate DESC, t.transactionid DESC
-        LIMIT 50
-    ";
-
-    try {
-        $stmt = $pdo->query($sql);
-        $data = $stmt->fetchAll();
-        echo json_encode($data);
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
-    }
-    exit;
-}
-
-http_response_code(405);
-echo json_encode(['error' => 'Method not allowed']);
-?>
+echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));

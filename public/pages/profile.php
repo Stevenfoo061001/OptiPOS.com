@@ -1,78 +1,213 @@
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow-sm mt-4">
-      <div class="card-body text-center">
+<?php
+require_once __DIR__ . '/../../config/config.php';
+?>
 
-        <h4 id="pf_name" class="mb-1">Loading...</h4>
-        <div class="badge bg-primary mb-3" id="pf_role">...</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css">
+    <title>POS System - Employee Profile</title>
+    <script>
+    const BASE_URL = "<?= BASE_URL ?>";
+    </script>
+    <script src="<?= BASE_URL ?>/assets/js/auth.js"></script>
 
-        <hr>
+    <style>
+    body { background:#e5e5e5; font-family: Arial, sans-serif; }
 
-        <div class="text-start px-3">
-            <div class="mb-3">
-                <label class="small text-muted fw-bold">USER ID</label>
-                <div id="pf_id" class="fs-5">—</div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="small text-muted fw-bold">EMAIL ADDRESS</label>
-                <div id="pf_email" class="fs-5">—</div>
-            </div>
 
-            <div class="mb-3">
-                <label class="small text-muted fw-bold">PHONE NUMBER</label>
-                <div id="pf_phone" class="fs-5">—</div>
-            </div>
+    .profile-section {
+      display:flex;
+      gap:30px;
+      align-items:center;
+    }
+
+    .avatar {
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      background:#cfd8e3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:48px;
+      color:#fff;
+    }
+
+    .name-role h4 { margin:10px 0 0; }
+    .name-role small { color:#555; }
+
+    .card-box {
+      background:#fff;
+      border-radius:10px;
+      padding:20px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .info-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      font-size:14px;
+    }
+
+    .label { color:#777; font-size:12px; }
+  </style>
+</head>
+<body>
+    <div class="app-layout">
+    <?php include __DIR__ . '/sidebar.php'; ?>
+
+<!-- MAIN -->
+<main class="main-content">
+  <div class="profile-layout">
+    <!-- Left Profile -->
+    <div class="profile-left">
+      <div class="profile-section">
+        <div class="avatar">👤</div>
+        <div class="name-role">
+            <h4 id="profileName">-</h4>
+            <small id="profileRole">-</small>
         </div>
-
-        <hr>
-
-        <button id="logoutBtnProfile" class="btn btn-outline-danger w-100">
-            <i class="bi bi-box-arrow-right"></i> Sign Out
-        </button>
-
       </div>
     </div>
+
+    <!-- Right Info -->
+    <div class="profile-right">
+      <div class="card-box mb-3">
+        <h6>Employee Details</h6>
+        <div class="info-grid mt-3">
+          <div>
+            <div class="label">Employee ID</div>
+            <span id="profileId">-</span>
+          </div>
+      </div>
+    </div>
+
+      <div class="card-box">
+  <h6>Contact</h6>
+
+  <div class="info-grid mt-3">
+
+    <div>
+      <div class="label">Email</div>
+
+      <span id="profileEmailText">-</span>
+      <input type="email"
+             id="profileEmailInput"
+             class="profile-input"
+             style="display:none;">
+    </div>
+
+    <div>
+      <div class="label">Contact Number</div>
+
+      <span id="profilePhoneText">-</span>
+      <input type="text"
+             id="profilePhoneInput"
+             class="profile-input"
+             style="display:none;">
+    </div>
+
+  </div>
+
+  <!-- Buttons -->
+  <div style="margin-top:20px;">
+    <button id="editBtn" class="chart-btn" onclick="enterEdit()">Edit Profile</button>
+    <button id="saveBtn" class="chart-btn" style="display:none;" onclick="saveProfile()">Save</button>
+    <button id="cancelBtn" class="chart-btn" style="display:none;" onclick="cancelEdit()">Cancel</button>
   </div>
 </div>
 
+    </div>
+  </div>
+</main>
+</div>
+
 <script>
-async function loadProfile() {
-    try {
-        const res = await fetch('/api/profile.php');
-        
-        if (!res.ok) {
-            if (res.status === 401) window.location.href = '?page=login';
-            return;
-        }
+let originalProfile = {};
 
-        const data = await res.json();
-        
-        // Populate fields
-        document.getElementById('pf_name').innerText = data.name;
-        document.getElementById('pf_role').innerText = data.role_display;
-        document.getElementById('pf_id').innerText = data.id;
-        document.getElementById('pf_email').innerText = data.email;
-        document.getElementById('pf_phone').innerText = data.phone;
+fetch("<?= BASE_URL ?>/api/profile.php")
+  .then(res => {
+    if (!res.ok) throw new Error("Unauthorized");
+    return res.json();
+  })
+  .then(user => {
+  originalProfile = user;
 
-        // Color badge based on role
-        if (data.role_display === 'Admin') {
-            document.getElementById('pf_role').className = 'badge bg-danger mb-3';
-        } else {
-            document.getElementById('pf_role').className = 'badge bg-success mb-3';
-        }
+  document.getElementById("profileName").textContent  = user.name;
+  document.getElementById("profileRole").textContent  = user.role_display;
+  document.getElementById("profileId").textContent    = user.id;
 
-    } catch (error) {
-        console.error("Error loading profile:", error);
-    }
+  document.getElementById("profileEmailText").textContent = user.email;
+  document.getElementById("profilePhoneText").textContent = user.phone ?? "-";
+
+  document.getElementById("profileEmailInput").value = user.email;
+  document.getElementById("profilePhoneInput").value = user.phone ?? "";
+
+  document.querySelector(".avatar").textContent =
+    user.name.charAt(0).toUpperCase();
+})
+
+  .catch(err => {
+    console.error(err);
+    alert("Please login again");
+    window.location.href = "index.php?page=login";
+  });
+
+function enterEdit() {
+  toggleEdit(true);
 }
 
-// Logout logic duplicated here for the button inside the card
-document.getElementById('logoutBtnProfile').addEventListener('click', async () => {
-    const r = await fetch('/api/logout.php');
-    const j = await r.json();
-    if (j.success) location.href = '?page=home';
-});
+function cancelEdit() {
+  document.getElementById("profileEmailInput").value = originalProfile.email;
+  document.getElementById("profilePhoneInput").value = originalProfile.phone ?? "";
+  toggleEdit(false);
+}
 
-loadProfile();
+function toggleEdit(editing) {
+  document.getElementById("profileEmailText").style.display = editing ? "none" : "inline";
+  document.getElementById("profilePhoneText").style.display = editing ? "none" : "inline";
+
+  document.getElementById("profileEmailInput").style.display = editing ? "block" : "none";
+  document.getElementById("profilePhoneInput").style.display = editing ? "block" : "none";
+
+  document.getElementById("editBtn").style.display = editing ? "none" : "inline-block";
+  document.getElementById("saveBtn").style.display = editing ? "inline-block" : "none";
+  document.getElementById("cancelBtn").style.display = editing ? "inline-block" : "none";
+}
+
+function saveProfile() {
+  const email = document.getElementById("profileEmailInput").value;
+  const phone = document.getElementById("profilePhoneInput").value;
+
+  fetch("<?= BASE_URL ?>/api/update_profile.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, phone })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.success) throw new Error(data.error || "Update failed");
+
+    // 更新画面
+    document.getElementById("profileEmailText").textContent = email;
+    document.getElementById("profilePhoneText").textContent = phone || "-";
+
+    originalProfile.email = email;
+    originalProfile.phone = phone;
+
+    toggleEdit(false);
+    alert("Profile updated successfully");
+  })
+  .catch(err => {
+    alert(err.message);
+  });
+}
+
 </script>
+
+
+</body>
+</html>

@@ -1,41 +1,46 @@
 <?php
-header("Content-Type: application/json");
-
-define("BASE_PATH", dirname(__DIR__)); // /public
+require_once __DIR__ . '/../../config/db.php';
+header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents("php://input"), true);
-$query = strtoupper(trim($data["query"] ?? ""));
+$keyword = trim($data['keyword'] ?? '');
 
-if ($query === "") {
-    echo json_encode(["success" => false, "error" => "Empty query"]);
-    exit;
-}
-
-$membersFile = BASE_PATH . "/data/members.json";
-
-if (!file_exists($membersFile)) {
-    http_response_code(500);
+if ($keyword === '') {
     echo json_encode([
-        "success" => false,
-        "error" => "members.json not found",
-        "path" => $membersFile
+        'success' => false,
+        'error' => 'Empty keyword'
     ]);
     exit;
 }
 
-$members = json_decode(file_get_contents($membersFile), true);
+try {
+    $stmt = $pdo->prepare('
+    SELECT 
+        memberid,
+        name,
+        phone,
+        points
+    FROM member
+    WHERE memberid = :kw
+       OR phone = :kw
+    LIMIT 1
+');
 
-foreach ($members as $member) {
-    if (
-        strtoupper($member["id"]) === $query ||
-        $member["phone"] === $query
-    ) {
-        echo json_encode([
-            "success" => true,
-            "member" => $member
-        ]);
+    $stmt->execute(['kw' => $keyword]);
+    $member = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$member) {
+        echo json_encode(['success' => false]);
         exit;
     }
-}
 
-echo json_encode(["success" => false]);
+    echo json_encode([
+        'success' => true,
+        'member' => $member
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
+}

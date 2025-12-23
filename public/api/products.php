@@ -8,14 +8,17 @@ $host = "localhost";
 $port = "5432";
 $dbname = "postgres";
 $user = "postgres";
-$password = "skittle3699"; 
+$password = "061001"; 
 
 try {
     $pdo = new PDO(
         "pgsql:host=$host;port=$port;dbname=$dbname",
         $user,
         $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
     );
 } catch (PDOException $e) {
     http_response_code(500);
@@ -32,11 +35,11 @@ if ($method === 'GET') {
     exit;
 }
 
-// ADMIN CHECK
 $currentUser = $_SESSION['user'] ?? null;
+
 if (!$currentUser || ($currentUser['role'] ?? '') !== 'admin') {
     http_response_code(403);
-    echo json_encode(['error' => 'Forbidden: Admin access only']);
+    echo json_encode(['error' => 'Admin only']);
     exit;
 }
 

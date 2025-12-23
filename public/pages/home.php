@@ -1,94 +1,212 @@
-<?php if (!empty($error)): ?>
-  <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-<?php endif; ?>
-
-<div class="row g-3">
-  <div class="col-md-3">
-    <div class="card p-3 shadow-sm border-start border-4 border-primary">
-      <div class="text-muted small text-uppercase fw-bold">Products</div>
-      <div class="d-flex align-items-center justify-content-between mt-2">
-        <div id="k_products" class="h3 mb-0">—</div>
-        <i class="bi bi-box-seam text-primary fs-4"></i>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-3">
-    <div class="card p-3 shadow-sm border-start border-4 border-info">
-      <div class="text-muted small text-uppercase fw-bold">Members</div>
-      <div class="d-flex align-items-center justify-content-between mt-2">
-        <div id="k_members" class="h3 mb-0">—</div>
-        <i class="bi bi-people text-info fs-4"></i>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-3">
-    <div class="card p-3 shadow-sm border-start border-4 border-success">
-      <div class="text-muted small text-uppercase fw-bold">Transactions</div>
-      <div class="d-flex align-items-center justify-content-between mt-2">
-        <div id="k_tx" class="h3 mb-0">—</div>
-        <i class="bi bi-receipt text-success fs-4"></i>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-3">
-    <div class="card p-3 shadow-sm border-start border-4 border-danger">
-      <div class="text-muted small text-uppercase fw-bold">Low Stock (< 10)</div>
-      <div class="d-flex align-items-center justify-content-between mt-2">
-        <div id="k_low" class="h3 mb-0 text-danger">—</div>
-        <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
-      </div>
-    </div>
-  </div>
-</div>
-
-<hr class="my-4">
-
-<div class="row">
-    <div class="col-md-6">
-        <p class="text-muted small text-uppercase fw-bold mb-3">Quick Actions</p>
-        <div class="d-flex gap-2 flex-wrap">
-          <a class="btn btn-primary" href="?page=cashier">
-            <i class="bi bi-cart"></i> Open Cashier
-          </a>
-          <a class="btn btn-outline-secondary" href="?page=products">
-            <i class="bi bi-list-check"></i> Manage Products
-          </a>
-          <a class="btn btn-outline-secondary" href="?page=members">
-            <i class="bi bi-person-plus"></i> Add Member
-          </a>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <p class="text-muted small text-uppercase fw-bold mb-3">System Status</p>
-        <div class="alert alert-light border small">
-            <i class="bi bi-database-check text-success me-2"></i> Connected to PostgreSQL
-            <br>
-            <i class="bi bi-clock text-muted me-2"></i> <?= date('Y-m-d H:i:s') ?>
-        </div>
-    </div>
-</div>
-
-<script>
-async function loadDashboard(){
-    try {
-        // Fetch only the counts (lightweight), not the full data lists
-        const response = await fetch('/api/dashboard.php');
-        const data = await response.json();
-
-        // Animate numbers (simple implementation)
-        document.getElementById('k_products').innerText = data.products;
-        document.getElementById('k_members').innerText = data.members;
-        document.getElementById('k_tx').innerText = data.transactions;
-        document.getElementById('k_low').innerText = data.low_stock;
-        
-    } catch (err) {
-        console.error("Dashboard load failed", err);
-    }
+<?php
+require_once __DIR__ . '/../../config/config.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OptiPOS - Home</title>
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css">
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-loadDashboard();
+body {
+    margin: 0;
+    background: #f5f6f8;
+}
+
+/* ===== Header ===== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.header .role {
+    font-weight: bold;
+}
+
+/* ===== Stat Cards ===== */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 6px solid;
+}
+
+.card.blue { border-color: #2563eb; }
+.card.cyan { border-color: #06b6d4; }
+.card.green { border-color: #16a34a; }
+.card.red { border-color: #dc2626; }
+
+.card h3 {
+    margin: 0 0 10px;
+}
+
+.card .value {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+/* ===== Sections ===== */
+.section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section h3 {
+    margin-top: 0;
+}
+
+/* ===== Buttons ===== */
+.btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.btn.primary { background: #2563eb; color: white; }
+.btn.gray { background: #e5e7eb; }
+</style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+  <?php include __DIR__ . '/sidebar.php'; ?>
+
+  <main class="main-content">
+
+
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Welcome to OptiPOS (Starter)</h1>
+                <p>This is the beginner-friendly demo.</p>
+            </div>
+            <div class="role">
+                Store Manager
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="card blue">
+                <h3>PRODUCTS</h3>
+                <div class="value" id="productsCount">—</div>
+            </div>
+
+            <div class="card cyan">
+                <h3>MEMBERS</h3>
+                <div class="value" id="membersCount">—</div>
+            </div>
+
+            <div class="card green">
+                <h3>TRANSACTIONS</h3>
+                <div class="value" id="transactionsCount">—</div>
+            </div>
+
+            <div class="card red">
+                <h3>LOW STOCK (&lt; 10)</h3>
+                <div class="value" id="lowStockCount">—</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+       <div class="section">
+            <h3>Quick Actions</h3>
+
+            <button class="btn primary"
+                    onclick="goTo('cashier')">
+                Open Cashier
+            </button>
+
+            <button class="btn gray"
+                    onclick="goTo('products')">
+                Manage Products
+            </button>
+
+            <button class="btn gray"
+                    onclick="goTo('members')">
+                Add Member
+            </button>
+        </div>
+
+
+        <!-- System Status -->
+        <div class="section">
+            <h3>System Status</h3>
+            <p id="dbStatusText">Checking database...</p>
+            <small id="dbStatusTime">—</small>
+        </div>
+</main>
+
+    </div>
+</body>
+
+<script>
+fetch("<?= BASE_URL ?>/api/home.php")
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            console.error(data.error);
+            return;
+        }
+
+        document.getElementById("productsCount").textContent = data.products;
+        document.getElementById("membersCount").textContent = data.members;
+        document.getElementById("transactionsCount").textContent = data.transactions;
+        document.getElementById("lowStockCount").textContent = data.low_stock;
+
+        const statusText = document.getElementById("dbStatusText");
+        const statusTime = document.getElementById("dbStatusTime");
+
+        if (data.db_status === "connected") {
+            statusText.textContent = "🟢 Connected to PostgreSQL";
+            statusText.style.color = "#16a34a";
+        } else {
+            statusText.textContent = "🔴 Database connection failed";
+            statusText.style.color = "#dc2626";
+        }
+
+        statusTime.textContent = data.checked_at;
+    })
+    .catch(err => {
+        document.getElementById("dbStatusText").textContent =
+            "🔴 Unable to reach server";
+        document.getElementById("dbStatusText").style.color = "#dc2626";
+        console.error("Dashboard fetch failed", err);
+    });
 </script>
+<script>
+  const BASE_URL = "<?= BASE_URL ?>";
+</script>
+<script src="<?= BASE_URL ?>/assets/js/auth.js"></script>
+<script>
+function goTo(page) {
+    window.location.href = "<?= BASE_URL ?>/index.php?page=" + page;
+}
+</script>
+
+</body>
+</html>

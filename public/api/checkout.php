@@ -2,6 +2,7 @@
 // public/api/checkout.php
 header('Content-Type: application/json');
 session_start();
+date_default_timezone_set('Asia/Kuala_Lumpur');
 
 // 1. Auth Check
 if (empty($_SESSION['user'])) {
@@ -21,7 +22,7 @@ $host = "localhost";
 $port = "5432";
 $dbname = "postgres";
 $user = "postgres";
-$password = "skittle3699"; 
+$password = "061001"; 
 
 try {
     $pdo = new PDO(
@@ -38,6 +39,7 @@ try {
 
 // 3. Process Input
 $input = json_decode(file_get_contents('php://input'), true);
+$memberId = $input['member_id'] ?? null;
 
 if (empty($input['items'])) {
     http_response_code(400);
@@ -51,6 +53,9 @@ $pointsRedeemed = (int)($input['points_redeemed'] ?? 0);
 $amountPaid = (float)($input['amount_paid'] ?? 0);
 
 // Start Transaction
+$paymentDate = date('Y-m-d');
+$paymentTime = date('H:i:s');
+
 $pdo->beginTransaction();
 
 try {
@@ -137,18 +142,26 @@ try {
 
     // C. Insert Order
     $stmt = $pdo->prepare("
-        INSERT INTO orders (orderid, totalprice, orderamount, orderdate, tax, discountprice, grandprice, memberid)
-        VALUES (:oid, :total, :qty, CURRENT_DATE, :tax, :disc, :grand, :mid)
-    ");
-    $stmt->execute([
-        ':oid' => $orderId,
-        ':total' => $totalPrice, // Subtotal
-        ':qty' => count($orderItems),
-        ':tax' => $tax,
-        ':disc' => $discount,
-        ':grand' => $finalTotal, // Final to Pay
-        ':mid' => $memberId
-    ]);
+    INSERT INTO orders (
+        orderid,
+        subtotal,
+        tax,
+        discount,
+        grandtotal,
+        memberid
+    ) VALUES (?, ?, ?, ?, ?, ?)
+");
+
+$stmt->execute([
+    $orderId,
+    $totalPrice,   // subtotal
+    $tax,
+    $discount,
+    $finalTotal,   // grandtotal
+    $memberId
+]);
+
+
 
     // D. Insert Order Items
     $stmt = $pdo->prepare("INSERT INTO order_item (orderid, stockid, unitprice, quantity) VALUES (?, ?, ?, ?)");
@@ -173,16 +186,28 @@ try {
 
     // F. Insert Transaction (Once only!)
     $stmt = $pdo->prepare("
-        INSERT INTO transactions (transactionid, amountpaid, paymentdate, paymentmethod, status, orderid, cashierid)
-        VALUES (:tid, :paid, CURRENT_DATE, :method, 'Completed', :oid, :cid)
-    ");
-    $stmt->execute([
-        ':tid' => $transId,
-        ':paid' => $amountPaid ?: $finalTotal,
-        ':method' => $paymentMethod,
-        ':oid' => $orderId,
-        ':cid' => $cashierId
-    ]);
+    INSERT INTO transactions (
+        transactionid,
+        orderid,
+        userid,
+        paymentmethod,
+        amountpaid,
+        payment_date,
+        payment_time,
+        status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'PAID')
+");
+
+$stmt->execute([
+    $transId,
+    $orderId,
+    $cashierId,   // cashier 也是 users 表里的 userid
+    $paymentMethod,
+    $amountPaid ?: $finalTotal,
+    $paymentDate,
+    $paymentTime
+]);
+
 
     $pdo->commit();
     

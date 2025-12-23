@@ -8,18 +8,31 @@ $host = "localhost";
 $port = "5432";
 $dbname = "postgres";
 $user = "postgres";
-$password = "skittle3699"; 
+$password = "061001"; 
+
+$dbStatus = 'disconnected';
+
 
 try {
     $pdo = new PDO(
         "pgsql:host=$host;port=$port;dbname=$dbname",
         $user,
         $password,
-        [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
     );
+    $dbStatus = 'connected';
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode([
+        'products'     => 0,
+        'members'      => 0,
+        'transactions' => 0,
+        'low_stock'    => 0,
+        'db_status'    => 'disconnected',
+        'checked_at'   => date('Y-m-d H:i:s')
+    ]);
     exit;
 }
 
@@ -40,9 +53,11 @@ $stmt = $pdo->query("SELECT COUNT(*) FROM stock WHERE quantity < 10");
 $lowStockCount = $stmt->fetchColumn();
 
 echo json_encode([
-    'products' => $productCount,
-    'members' => $memberCount,
-    'transactions' => $txCount,
-    'low_stock' => $lowStockCount
+    'products'     => (int)$productCount,
+    'members'      => (int)$memberCount,
+    'transactions' => (int)$txCount,
+    'low_stock'    => (int)$lowStockCount,
+    'db_status'    => $dbStatus,
+    'checked_at'   => date('Y-m-d H:i:s')
 ]);
 ?>
