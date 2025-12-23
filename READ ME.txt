@@ -34,6 +34,9 @@ For php codes:
 3. change the password into your own password, where is what u registered in PostgreSQL
 4. if u forgot, i cannot help u la
 
+Copy paste or move the entire file into C:\xampp\htdocs
+go to browser search for http://localhost/OptiPOS.com-main
+
 -----------------------------------------------------------
 
 
