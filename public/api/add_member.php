@@ -34,11 +34,27 @@ if (strlen($phone) >= 15) {
   exit;
 }
 
-// email: gmail or yahoo only (if provided)
-if ($email && !preg_match("/^[a-zA-Z0-9._%+-]+@(gmail|yahoo)\.com$/", $email)) {
-  echo json_encode(["success" => false, "error" => "Email must be @gmail.com or @yahoo.com"]);
-  exit;
-}
+/* ---------- DEFAULT POINTS ---------- */
+$points = 200;
+
+try {
+  /* ---------- TRANSACTION ---------- */
+  $pdo->beginTransaction();
+
+  /* ---------- DUPLICATE PHONE (DB-SAFE) ---------- */
+  $stmt = $pdo->prepare(
+    "SELECT 1 FROM member WHERE phone = :phone FOR UPDATE"
+  );
+  $stmt->execute([":phone" => $phone]);
+
+  if ($stmt->fetch()) {
+    $pdo->rollBack();
+    echo json_encode([
+      "success" => false,
+      "error" => "This phone number already exists"
+    ]);
+    exit;
+  }
 
   /* ---------- SAFE MEMBER ID (LOCKED) ---------- */
   $stmt = $pdo->query("
