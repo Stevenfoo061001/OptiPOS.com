@@ -29,13 +29,10 @@ After that:
 v
 
 For php codes:
-1. if u see api and config folder, all the files have intergrated with PostgreSQL
+1. if u see api folder, all the files have intergrated with PostgreSQL
 2. if u have done all above, visit all files in the api folder so u see a line like ( $password = "skittle3699"; )
 3. change the password into your own password, where is what u registered in PostgreSQL
 4. if u forgot, i cannot help u la
-
-Copy paste or move the entire file into C:\xampp\htdocs
-go to browser search for http://localhost/OptiPOS.com-main
 
 -----------------------------------------------------------
 
@@ -125,34 +122,3 @@ CREATE TABLE order_item (
         REFERENCES stock(StockID)
 );
 
-INSERT INTO users (
-    userid,
-    name,
-    phone,
-    email,
-    password,
-    role
-) VALUES (
-    'U000001',
-    'Admin One',
-    '0123456789',
-    'admin@optipos.com',
-    '1234',
-    'admin'
-);
-
-INSERT INTO users (
-    userid,
-    name,
-    phone,
-    email,
-    password,
-    role
-) VALUES (
-    'U000002',
-    'Cashier One',
-    '0198887777',
-    'cashier@optipos.com',
-    '1234',
-    'cashier'
-);

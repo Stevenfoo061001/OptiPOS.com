@@ -8,26 +8,8 @@ require_once __DIR__ . '/../../config/db.php';
 
 <div class="app-layout">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>POS System</h2>
-    </div>
+  <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <nav class="sidebar-menu">
-      <a href="<?= BASE_URL ?>/index.php?page=home">Home</a>
-      <a href="<?= BASE_URL ?>/index.php?page=cashier">Cashier</a>
-      <a href="<?= BASE_URL ?>/index.php?page=products">Products</a>
-      <a href="<?= BASE_URL ?>/index.php?page=members">Members</a>
-      <a href="<?= BASE_URL ?>/index.php?page=transactions" class="active">Transactions</a>
-      <a href="<?= BASE_URL ?>/index.php?page=reports">Reports</a>
-      <a href="<?= BASE_URL ?>/index.php?page=profile">Profile</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
@@ -45,20 +27,9 @@ require_once __DIR__ . '/../../config/db.php';
         class="transaction-search"
         >
 
-        <?php if (empty($transactions)): ?>
-          <p>No transactions found</p>
-        <?php else: ?>
-          <?php foreach ($transactions as $index => $trx): ?>
-            <div class="transaction-item <?= $index === 0 ? 'active' : '' ?>"
-                 data-index="<?= $index ?>">
-              <strong><?= htmlspecialchars($trx['transactionid']) ?></strong>
-              <div class="trx-date">
-                <?= htmlspecialchars($trx['payment_date']) ?>
-                <?= htmlspecialchars($trx['payment_time']) ?>
-              </div>
-            </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
+        <div id="transactionList">
+    <p class="empty">Loading...</p>
+  </div>
       </aside>
 
       <!-- RIGHT: RECEIPT -->

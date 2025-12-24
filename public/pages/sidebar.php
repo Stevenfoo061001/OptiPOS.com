@@ -47,6 +47,12 @@ $role = $user['role'] ?? null;
       Reports
     </a>
 
+    <a href="<?= BASE_URL ?>/index.php?page=users"
+       class="<?= ($_GET['page'] ?? '') === 'users' ? 'active' : '' ?>">
+      Users
+    </a>
+
+
     <a href="<?= BASE_URL ?>/index.php?page=profile"
        class="<?= ($_GET['page'] ?? '') === 'profile' ? 'active' : '' ?>">
       Profile

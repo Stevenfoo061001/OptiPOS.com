@@ -4,57 +4,108 @@ require_once __DIR__ . "/../../config/db.php";
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$name = trim($data["name"] ?? "");
+$name  = trim($data["name"] ?? "");
 $phone = trim($data["phone"] ?? "");
 $email = trim($data["email"] ?? "");
-$points = intval($data["points"] ?? 0);
 
-/* ===== VALIDATION (ADDED ONLY) ===== */
-
-// required fields
-if (!$name || !$phone) {
-  echo json_encode(["success" => false, "error" => "Missing required fields"]);
+/* ---------- BASIC VALIDATION ---------- */
+if ($name === "" || $phone === "") {
+  echo json_encode([
+    "success" => false,
+    "error" => "Name and phone are required"
+  ]);
   exit;
 }
 
-// name: alphabetic only
-if (!preg_match("/^[a-zA-Z ]+$/", $name)) {
-  echo json_encode(["success" => false, "error" => "Name must be alphabetic only"]);
+/* ---------- PHONE VALIDATION ---------- */
+if (!preg_match('/^\d+$/', $phone)) {
+  echo json_encode([
+    "success" => false,
+    "error" => "Phone number must contain digits only"
+  ]);
   exit;
 }
 
-// phone: numeric only
-if (!ctype_digit($phone)) {
-  echo json_encode(["success" => false, "error" => "Phone number must be numeric only"]);
+if (strlen($phone) >= 15) {
+  echo json_encode([
+    "success" => false,
+    "error" => "Phone number must be less than 15 digits"
+  ]);
   exit;
 }
 
-// email: gmail or yahoo only (if provided)
-if ($email && !preg_match("/^[a-zA-Z0-9._%+-]+@(gmail|yahoo)\.com$/", $email)) {
-  echo json_encode(["success" => false, "error" => "Email must be @gmail.com or @yahoo.com"]);
+/* ---------- DEFAULT POINTS ---------- */
+$points = 200;
+
+try {
+  /* ---------- TRANSACTION ---------- */
+  $pdo->beginTransaction();
+
+  /* ---------- DUPLICATE PHONE (DB-SAFE) ---------- */
+  $stmt = $pdo->prepare(
+    "SELECT 1 FROM member WHERE phone = :phone FOR UPDATE"
+  );
+  $stmt->execute([":phone" => $phone]);
+
+  if ($stmt->fetch()) {
+    $pdo->rollBack();
+    echo json_encode([
+      "success" => false,
+      "error" => "This phone number already exists"
+    ]);
+    exit;
+  }
+
+  /* ---------- SAFE MEMBER ID (LOCKED) ---------- */
+  $stmt = $pdo->query("
+    SELECT COALESCE(
+      MAX(
+        CAST(
+          NULLIF(
+            REGEXP_REPLACE(memberid, '[^0-9]', '', 'g'),
+            ''
+          ) AS INT
+        )
+      ), 0
+    ) + 1
+    FROM member
+  ");
+
+  $nextId = $stmt->fetchColumn();
+  $memberId = 'M' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+  /* ---------- INSERT ---------- */
+  $stmt = $pdo->prepare("
+    INSERT INTO member (memberid, name, phone, email, points)
+    VALUES (:id, :name, :phone, :email, :points)
+  ");
+
+  $stmt->execute([
+    ":id"     => $memberId,
+    ":name"   => $name,
+    ":phone"  => $phone,
+    ":email"  => $email,
+    ":points" => $points
+  ]);
+
+  $pdo->commit();
+
+} catch (PDOException $e) {
+  if ($pdo->inTransaction()) {
+    $pdo->rollBack();
+  }
+
+  http_response_code(500);
+
+  // ⚠️ 调试阶段先看清楚错误
+  echo json_encode([
+    "success" => false,
+    "error" => $e->getMessage()
+  ]);
   exit;
 }
 
-/* ===== ORIGINAL CODE CONTINUES ===== */
-
-$stmt = $pdo->query("SELECT COUNT(*) FROM member");
-$count = $stmt->fetchColumn();
-$memberId = "M" . str_pad($count + 1, 3, "0", STR_PAD_LEFT);
-
-$sql = "
-  INSERT INTO member (memberid, name, phone, email, points)
-  VALUES (:id, :name, :phone, :email, :points)
-";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute([
-  ":id"    => $memberId,
-  ":name"  => $name,
-  ":phone" => $phone,
-  ":email" => $email,
-  ":points"=> $points
-]);
-
+/* ---------- RESPONSE ---------- */
 echo json_encode([
   "success" => true,
   "member" => [

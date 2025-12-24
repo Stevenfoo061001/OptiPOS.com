@@ -36,11 +36,16 @@ document.getElementById("membersList")
 
 function openMemberModal(mode, data = {}) {
     const deleteBtn = document.querySelector(".btn-delete");
+    const pointsInput = document.getElementById("memberPoints");
 
 if (mode === "add") {
   deleteBtn.style.display = "none";
+  pointsInput.value = 200;
+  pointsInput.disabled = true;
 } else {
   deleteBtn.style.display = "inline-block";
+  pointsInput.value = data.points || 0;
+  pointsInput.disabled = false;
 }
 
   document.getElementById("memberModal").style.display = "flex";
@@ -53,7 +58,6 @@ if (mode === "add") {
   document.getElementById("memberName").value = data.name || "";
   document.getElementById("memberPhone").value = data.phone || "";
   document.getElementById("memberEmail").value = data.email || "";
-  document.getElementById("memberPoints").value = data.points || 0;
 }
 
 function closeMemberModal() {
@@ -62,17 +66,55 @@ function closeMemberModal() {
 
 /* ---------- SAVE MEMBER ---------- */
 function saveMember() {
+  const mode = document.getElementById("memberMode").value;
+  const name = document.getElementById("memberName").value.trim();
+  const phone = document.getElementById("memberPhone").value.trim();
+  const email = document.getElementById("memberEmail").value.trim();
+  const pointsInput = document.getElementById("memberPoints");
+
+  // Name required
+  if (!name) {
+    alert("Name is required");
+    return;
+  }
+
+  // Phone required
+  if (!phone) {
+    alert("Phone number is required");
+    return;
+  }
+
+  // Phone: digits only
+  if (!/^\d+$/.test(phone)) {
+    alert("Phone number must contain digits only");
+    return;
+  }
+
+  if (phone.length >= 15) {
+    alert("Phone number must be less than 15 digits");
+    return;
+  }
+
+  // Email format (optional)
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert("Invalid email address");
+    return;
+  }
+
   const payload = {
-    mode: document.getElementById("memberMode").value,
+    mode,
     id: document.getElementById("memberId").value,
-    name: document.getElementById("memberName").value,
-    phone: document.getElementById("memberPhone").value,
-    email: document.getElementById("memberEmail").value,
-    points: document.getElementById("memberPoints").value
+    name,
+    phone,
+    email
   };
 
+  if (mode === "edit") {
+    payload.points = pointsInput.value;
+  }
+
   const url =
-  payload.mode === "add"
+    mode === "add"
     ? "api/add_member.php"
     : "api/save_member.php";
 
@@ -88,11 +130,9 @@ function saveMember() {
       return;
     }
 
-    if (payload.mode === "add") {
-      appendMemberRow(data.member);
-    } else {
-      updateMemberRow(data.member);
-    }
+    mode === "add"
+      ? appendMemberRow(data.member)
+      : updateMemberRow(data.member);
 
     closeMemberModal();
   });

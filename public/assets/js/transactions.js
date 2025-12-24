@@ -17,19 +17,42 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadTransactions() {
+  const list = document.getElementById("transactionList");
+
+  list.innerHTML = "<p class='empty'>Loading...</p>";
+
   fetch(`${BASE_URL}/api/transactions.php`)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+      return res.json();
+    })
     .then(data => {
       transactions = data;
+
+      if (transactions.length === 0) {
+        list.innerHTML = "<p class='empty'>No transactions found</p>";
+        return;
+      }
+
+      // 有数据才 render
       renderTransactionList();
-      if (transactions.length > 0) renderReceipt(0);
+      renderReceipt(0);
+    })
+    .catch(err => {
+      console.error(err);
+
+      list.innerHTML =
+        "<p class='empty'>Failed to load transactions</p>";
     });
 }
 
-function renderTransactionList() {
-  const list = document.querySelector(".transaction-list");
 
-  document.querySelectorAll(".transaction-item").forEach(e => e.remove());
+function renderTransactionList() {
+  const list = document.getElementById("transactionList");
+
+  list.innerHTML = "";
 
   transactions.forEach((trx, index) => {
     const div = document.createElement("div");

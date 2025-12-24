@@ -7,10 +7,10 @@ if (empty($_SESSION['user'])) {
     exit;
 }
 
-// if ($_SESSION['user']['role'] !== 'admin') {
-//     header("Location: " . BASE_URL . "/index.php?page=no_permission");
-//     exit;
-// }
+if ($_SESSION['user']['role'] !== 'admin') {
+    header("Location: " . BASE_URL . "/index.php?page=no_permission");
+    exit;
+}
 
 $sql = "
   SELECT
@@ -39,25 +39,7 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="app-layout">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>POS System</h2>
-    </div>
-
-    <nav class="sidebar-menu">
-      <a href="<?= BASE_URL ?>/index.php?page=home">Home</a>
-      <a href="<?= BASE_URL ?>/index.php?page=cashier">Cashier</a>
-      <a href="<?= BASE_URL ?>/index.php?page=products">Products</a>
-      <a href="<?= BASE_URL ?>/index.php?page=members" class="active">Members</a>
-      <a href="<?= BASE_URL ?>/index.php?page=transactions">Transactions</a>
-      <a href="<?= BASE_URL ?>/index.php?page=reports">Reports</a>
-      <a href="<?= BASE_URL ?>/index.php?page=profile">Profile</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
-  </aside>
+  <?php include __DIR__ . '/sidebar.php'; ?>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">

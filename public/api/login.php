@@ -1,16 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-
-$pdo = new PDO(
-    "pgsql:host=localhost;port=5432;dbname=postgres",
-    "postgres",
-    "061001",
-    [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]
-);
+require_once __DIR__ . "/../../config/db.php";
 
 $data = json_decode(file_get_contents("php://input"), true);
 

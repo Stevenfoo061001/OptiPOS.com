@@ -2,6 +2,7 @@
 // public/api/checkout.php
 header('Content-Type: application/json');
 session_start();
+require_once __DIR__ . "/../../config/db.php";
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
 // 1. Auth Check
@@ -16,26 +17,6 @@ $cashierId = $currentUser['id'];
 
 // Safety: Ensure Cashier ID fits in DB (max 7 chars)
 if (strlen($cashierId) > 7) $cashierId = substr($cashierId, 0, 7);
-
-// 2. Database Connection
-$host = "localhost";
-$port = "5432";
-$dbname = "postgres";
-$user = "postgres";
-$password = "061001"; 
-
-try {
-    $pdo = new PDO(
-        "pgsql:host=$host;port=$port;dbname=$dbname",
-        $user,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-    );
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error']);
-    exit;
-}
 
 // 3. Process Input
 $input = json_decode(file_get_contents('php://input'), true);

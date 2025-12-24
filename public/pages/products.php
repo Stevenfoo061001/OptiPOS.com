@@ -12,14 +12,8 @@ if ($_SESSION['user']['role'] !== 'admin') {
     exit;
 }
 
-
 $stmt = $pdo->query("
-    SELECT 
-        stockid,
-        name,
-        unitprice,
-        quantity,
-        category
+    SELECT stockid, name, unitprice, quantity, category, image
     FROM stock
     ORDER BY name
 ");
@@ -30,78 +24,135 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Products</title>
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css">
+<meta charset="UTF-8">
+<title>Products</title>
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/app.css">
+
+<style>
+/* ===== IMAGE ===== */
+.product-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.product-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+/* ===== GRID VIEW ===== */
+.members-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.members-list.grid-view .product-row {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px;
+}
+
+.members-list.grid-view .product-thumb {
+  width: 100%;
+  height: 140px;
+  margin-bottom: 10px;
+}
+
+.members-list.grid-view .product-right {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+</style>
 </head>
+
 <body>
-
 <div class="app-layout">
-
 <?php include __DIR__ . '/sidebar.php'; ?>
-  <!-- MAIN -->
-  <main class="main-content">
 
-    <!-- HEADER -->
-    <div class="members-header">
-      <h1>Products</h1>
+<main class="main-content">
 
-      <div class="members-actions">
-        <input
-          type="text"
-          id="productSearch"
-          placeholder="Search by name or category"
-        >
-        <button class="add-member-btn" onclick="openProductModal('add')">
-          + Add Product
-        </button>
+<!-- HEADER -->
+<div class="members-header">
+  <h1>Products</h1>
+
+  <div class="members-actions">
+    <input type="text" id="productSearch" placeholder="Search by name or category">
+
+    <select id="categoryFilter" class="pretty-select">
+      <option value="">All Categories</option>
+      <?php
+        $categories = array_unique(array_column($products, 'category'));
+        foreach ($categories as $c):
+      ?>
+        <option value="<?= strtolower($c) ?>"><?= htmlspecialchars($c) ?></option>
+      <?php endforeach; ?>
+    </select>
+
+    <!-- ✅ VIEW TOGGLE BUTTON -->
+    <button type="button" class="pretty-btn" id="viewToggleBtn" onclick="toggleView()">
+      🔳 Grid View
+    </button>
+
+    <button class="add-member-btn" onclick="openProductModal('add')">
+      + Add Product
+    </button>
+  </div>
+</div>
+
+<!-- PRODUCT LIST -->
+<div class="members-list" id="productList">
+<?php foreach ($products as $p): ?>
+  <div
+    class="product-row <?= $p['quantity'] <= 10 ? 'low-stock' : '' ?>"
+    data-name="<?= strtolower($p['name']) ?>"
+    data-category="<?= strtolower($p['category'] ?? '') ?>"
+    onclick='openProductModal("edit", <?= json_encode($p) ?>)'
+  >
+
+    <div class="product-left">
+      <img
+        class="product-thumb"
+        src="<?= $p['image']
+              ? BASE_URL . $p['image']
+              : BASE_URL . '/assets/img/no-image.png' ?>"
+      >
+      <div>
+        <div class="product-id"><?= htmlspecialchars($p['stockid']) ?></div>
+        <div class="product-name"><?= htmlspecialchars($p['name']) ?></div>
+        <div class="product-category">
+          <?= htmlspecialchars($p['category'] ?? 'Uncategorized') ?>
+        </div>
       </div>
     </div>
 
-    <!-- PRODUCT LIST -->
-    <div class="members-list">
-
-      <?php if (empty($products)): ?>
-        <div class="empty">No products found</div>
-      <?php else: ?>
-        <?php foreach ($products as $p): ?>
-          <div
-            class="product-row <?= $p['quantity'] <= 10 ? 'low-stock' : '' ?>"
-            data-name="<?= strtolower($p['name']) ?>"
-            data-category="<?= strtolower($p['category']) ?>"
-            onclick='openProductModal("edit", <?= json_encode($p) ?>)'
-            >
-
-            <div class="product-left">
-              <div class="product-id"><?= htmlspecialchars($p['stockid']) ?></div>
-              <div class="product-name"><?= htmlspecialchars($p['name']) ?></div>
-              <div class="product-category"><?= htmlspecialchars($p['category']) ?></div>
-            </div>
-
-            <div class="product-right">
-              <div class="product-price">
-                RM <?= number_format($p['unitprice'], 2) ?>
-              </div>
-              <div class="product-stock <?= $p['quantity'] <= 10 ? 'low-stock' : '' ?>">
-                Stock: <?= intval($p['quantity']) ?>
-                <?php if ($p['quantity'] <= 10): ?>
-                  <span class="stock-warning">⚠ Low</span>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-
+    <div class="product-right">
+      <div class="product-price">
+        RM <?= number_format($p['unitprice'], 2) ?>
+      </div>
+      <div class="product-stock <?= $p['quantity'] <= 10 ? 'low-stock' : '' ?>">
+        Stock: <?= intval($p['quantity']) ?>
+        <?php if ($p['quantity'] <= 10): ?>
+          <span class="stock-warning">⚠ Low</span>
+        <?php endif; ?>
+      </div>
     </div>
 
-  </main>
+  </div>
+<?php endforeach; ?>
+</div>
+
+</main>
 </div>
 
 <!-- PRODUCT MODAL -->
 <div class="modal-overlay" id="productModal" style="display:none;">
   <div class="modal-card">
-
     <h2 id="modalTitle">Add Product</h2>
 
     <input type="hidden" id="mode">
@@ -119,113 +170,131 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       <label>Category</label>
       <input type="text" id="productCategory">
+
+      <label>Product Image</label>
+      <input type="file" id="productImage" accept="image/*">
     </div>
 
     <div class="modal-actions">
-      <button
-        class="btn-delete"
-        id="deleteBtn"
-        style="display:none;"
-        onclick="deleteProduct()"
-      >
-        Delete
-      </button>
+      <button type="button" class="btn-delete" id="deleteBtn"
+        style="display:none;" onclick="deleteProduct()">Delete</button>
 
-      <button class="btn-cancel" onclick="closeProductModal()">Cancel</button>
-      <button class="btn-save" onclick="saveProduct()">Save</button>
+      <button type="button" class="btn-cancel"
+        onclick="closeProductModal()">Cancel</button>
+
+      <button type="button" class="btn-save"
+        onclick="saveProduct()">Save</button>
     </div>
-
   </div>
 </div>
-<script>
-  const BASE_URL = "<?= BASE_URL ?>";
-</script>
-<script src="<?= BASE_URL ?>/assets/js/auth.js"></script>
 
 <script>
-/* ---------- SEARCH ---------- */
-document.getElementById("productSearch").addEventListener("input", function () {
-  const keyword = this.value.toLowerCase();
-  document.querySelectorAll(".product-row").forEach(row => {
+const BASE_URL = "<?= BASE_URL ?>";
+
+/* ===== SEARCH & FILTER ===== */
+function filterProducts() {
+  const keyword = document.getElementById('productSearch').value.toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
+
+  document.querySelectorAll('.product-row').forEach(row => {
     const match =
-      row.dataset.name.includes(keyword) ||
-      row.dataset.category.includes(keyword);
-    row.style.display = match ? "flex" : "none";
+      (row.dataset.name.includes(keyword) ||
+       row.dataset.category.includes(keyword)) &&
+      (!cat || row.dataset.category === cat);
+    row.style.display = match ? '' : 'none';
   });
-});
+}
+productSearch.oninput = filterProducts;
+categoryFilter.onchange = filterProducts;
 
-/* ---------- MODAL ---------- */
+/* ===== GRID / LIST TOGGLE ===== */
+let isGridView = false;
+
+function toggleView() {
+  const list = document.getElementById('productList');
+  const btn = document.getElementById('viewToggleBtn');
+
+  const isGrid = list.classList.toggle('grid-view');
+
+  // ✅ save preference
+  localStorage.setItem('productViewMode', isGrid ? 'grid' : 'list');
+
+  // update button text
+  btn.textContent = isGrid ? '📋 List View' : '🔳 Grid View';
+}
+
+
+/* ===== MODAL ===== */
 function openProductModal(mode, data = {}) {
-  document.getElementById("productModal").style.display = "flex";
+  productModal.style.display = "flex";
   document.getElementById("mode").value = mode;
+  productImage.value = "";
 
   if (mode === "add") {
-    document.getElementById("modalTitle").textContent = "Add Product";
-    document.getElementById("deleteBtn").style.display = "none";
-
-    document.getElementById("stockId").value = data.stockid;
-    document.getElementById("productName").value = data.name;
-    document.getElementById("productPrice").value = data.unitprice;
-    document.getElementById("productQty").value = data.quantity;
-    document.getElementById("productCategory").value = data.category;
-
+    modalTitle.textContent = "Add Product";
+    deleteBtn.style.display = "none";
+    stockId.value = productName.value = productPrice.value =
+    productQty.value = productCategory.value = "";
   } else {
-    document.getElementById("modalTitle").textContent = "Edit Product";
-    document.getElementById("deleteBtn").style.display = "inline-block";
-
-    document.getElementById("stockId").value = data.stockid;
-    document.getElementById("productName").value = data.name;
-    document.getElementById("productPrice").value = data.unitprice;
-    document.getElementById("productQty").value = data.quantity;
-    document.getElementById("productCategory").value = data.category;
+    modalTitle.textContent = "Edit Product";
+    deleteBtn.style.display = "inline-block";
+    stockId.value = data.stockid;
+    productName.value = data.name;
+    productPrice.value = data.unitprice;
+    productQty.value = data.quantity;
+    productCategory.value = data.category ?? '';
   }
 }
 
 function closeProductModal() {
-  document.getElementById("productModal").style.display = "none";
+  productModal.style.display = "none";
 }
 
-/* ---------- SAVE ---------- */
+/* ===== SAVE ===== */
 function saveProduct() {
-  const mode = document.getElementById("mode").value;
+  const fd = new FormData();
+  fd.append("mode", mode.value);
+  fd.append("stockid", stockId.value);
+  fd.append("name", productName.value);
+  fd.append("price", productPrice.value);
+  fd.append("stock", productQty.value);
+  fd.append("category", productCategory.value);
 
-  const payload = {
-    stockid: document.getElementById("stockId").value,
-    name: document.getElementById("productName").value,
-    price: document.getElementById("productPrice").value,
-    stock: document.getElementById("productQty").value,
-    category: document.getElementById("productCategory").value
-  };
+  if (productImage.files.length) {
+    fd.append("image", productImage.files[0]);
+  }
 
   fetch(`${BASE_URL}/api/products.php`, {
-    method: mode === "add" ? "POST" : "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    method: "POST",
+    body: fd
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) {
-      alert(data.error);
-    } else {
-      location.reload();
-    }
-  });
+  .then(r => r.json())
+  .then(d => d.error ? alert(d.error) : location.reload());
 }
 
-
-/* ---------- DELETE ---------- */
+/* ===== DELETE ===== */
 function deleteProduct() {
   if (!confirm("Delete this product?")) return;
-
-  fetch("api/delete_product.php", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      stockId: document.getElementById("stockId").value
-    })
-  })
-  .then(() => location.reload());
+  fetch(`${BASE_URL}/api/products.php?id=${stockId.value}`, { method: "DELETE" })
+    .then(r => r.json())
+    .then(d => d.error ? alert(d.error) : location.reload());
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedView = localStorage.getItem('productViewMode');
+  const list = document.getElementById('productList');
+  const btn = document.getElementById('viewToggleBtn');
+
+  if (savedView === 'grid') {
+    list.classList.add('grid-view');
+    btn.textContent = '📋 List View';
+  } else {
+    list.classList.remove('grid-view');
+    btn.textContent = '🔳 Grid View';
+  }
+});
+
 </script>
+
 </body>
 </html>

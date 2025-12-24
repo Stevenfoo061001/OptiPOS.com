@@ -6,7 +6,7 @@ $sql = <<<SQL
 CREATE TABLE IF NOT EXISTS users (
     userid VARCHAR(7) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    phone VARCHAR(15),
+    phone VARCHAR (15) UNIQUE NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(10) NOT NULL CHECK (role IN ('admin', 'cashier'))
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE TABLE IF NOT EXISTS transactions (
     transactionid VARCHAR(7) PRIMARY KEY,
     orderid VARCHAR(7) NOT NULL,
-    userid VARCHAR(7) NOT NULL,
+    userid VARCHAR(7),
     paymentmethod VARCHAR(20) NOT NULL,
     amountpaid DECIMAL(8,2) NOT NULL,
     payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT fk_tx_user
         FOREIGN KEY (userid)
         REFERENCES users(userid)
+        ON DELETE SET NULL
 
 );
 

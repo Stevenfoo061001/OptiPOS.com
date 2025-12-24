@@ -113,7 +113,7 @@ require_once __DIR__ . '/../../config/config.php';
   </div>
 
   <!-- Buttons -->
-  <div style="margin-top:20px;">
+  <!-- <div style="margin-top:20px;">
     <button id="editBtn" class="chart-btn" onclick="enterEdit()">Edit Profile</button>
     <button id="saveBtn" class="chart-btn" style="display:none;" onclick="saveProfile()">Save</button>
     <button id="cancelBtn" class="chart-btn" style="display:none;" onclick="cancelEdit()">Cancel</button>
@@ -123,7 +123,7 @@ require_once __DIR__ . '/../../config/config.php';
     </div>
   </div>
 </main>
-</div>
+</div> -->
 
 <script>
 let originalProfile = {};
