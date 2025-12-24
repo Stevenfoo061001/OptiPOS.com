@@ -99,10 +99,15 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="modal-form">
       <label>Name</label>
-      <input type="text" id="memberName">
+      <input type="text" id="memberName"
+      placeholder="Full Name">
 
       <label>Phone</label>
-      <input type="text" id="memberPhone">
+      <input type="text" 
+      id="memberPhone"
+      maxlength="13"
+      minlength="3"
+      placeholder="Phone Number without -">
 
       <label>Email</label>
       <input type="email" id="memberEmail">

@@ -160,7 +160,8 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="modal-form">
       <label>Name</label>
-      <input type="text" id="productName">
+      <input type="text" id="productName"
+      placeholder="Name of Product">
 
       <label>Unit Price</label>
       <input type="number" id="productPrice" step="0.01">
