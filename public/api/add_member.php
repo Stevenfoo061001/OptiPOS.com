@@ -9,10 +9,33 @@ $phone = trim($data["phone"] ?? "");
 $email = trim($data["email"] ?? "");
 $points = intval($data["points"] ?? 0);
 
+/* ===== VALIDATION (ADDED ONLY) ===== */
+
+// required fields
 if (!$name || !$phone) {
   echo json_encode(["success" => false, "error" => "Missing required fields"]);
   exit;
 }
+
+// name: alphabetic only
+if (!preg_match("/^[a-zA-Z ]+$/", $name)) {
+  echo json_encode(["success" => false, "error" => "Name must be alphabetic only"]);
+  exit;
+}
+
+// phone: numeric only
+if (!ctype_digit($phone)) {
+  echo json_encode(["success" => false, "error" => "Phone number must be numeric only"]);
+  exit;
+}
+
+// email: gmail or yahoo only (if provided)
+if ($email && !preg_match("/^[a-zA-Z0-9._%+-]+@(gmail|yahoo)\.com$/", $email)) {
+  echo json_encode(["success" => false, "error" => "Email must be @gmail.com or @yahoo.com"]);
+  exit;
+}
+
+/* ===== ORIGINAL CODE CONTINUES ===== */
 
 $stmt = $pdo->query("SELECT COUNT(*) FROM member");
 $count = $stmt->fetchColumn();
