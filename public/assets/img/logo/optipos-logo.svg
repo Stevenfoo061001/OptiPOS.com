@@ -1,0 +1,16 @@
+<svg width="160" height="40" viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon -->
+  <rect x="0" y="0" width="36" height="36" rx="8" fill="#2563eb"></rect>
+  <rect x="9" y="9" width="6" height="6" rx="1" fill="#ffffff"></rect>
+  <rect x="21" y="9" width="6" height="6" rx="1" fill="#ffffff"></rect>
+  <rect x="9" y="21" width="6" height="6" rx="1" fill="#ffffff"></rect>
+  <rect x="21" y="21" width="6" height="6" rx="1" fill="#ffffff"></rect>
+
+  <!-- Text -->
+  <text x="46" y="26" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0f172a">
+    Opti
+  </text>
+  <text x="86" y="26" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#2563eb">
+    POS
+  </text>
+</svg>

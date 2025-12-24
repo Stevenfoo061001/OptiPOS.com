@@ -11,7 +11,11 @@ $role = $user['role'] ?? null;
 
   <!-- HEADER -->
   <div class="sidebar-header">
-    <h2>POS System</h2>
+   <img
+  src="<?= BASE_URL ?>/assets/img/logo/optipos-logo.svg"
+  alt="OptiPOS"
+  style="width:160px;"
+  >
   </div>
 
   <!-- MENU -->

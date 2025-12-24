@@ -94,11 +94,11 @@ require_once __DIR__ . '/../../config/config.php';
         <!-- Header -->
         <div class="header">
             <div>
-                <h1>Welcome to OptiPOS (Starter)</h1>
+                <h1>Welcome to OptiPOS</h1>
                 <p>This is the beginner-friendly demo.</p>
             </div>
             <div class="role">
-                Store Manager
+               <?= htmlspecialchars($_SESSION['user']['role'] ?? 'Staff') ?>
             </div>
         </div>
 
