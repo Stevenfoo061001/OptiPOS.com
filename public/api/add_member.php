@@ -4,10 +4,9 @@ require_once __DIR__ . "/../../config/db.php";
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$name = trim($data["name"] ?? "");
+$name  = trim($data["name"] ?? "");
 $phone = trim($data["phone"] ?? "");
 $email = trim($data["email"] ?? "");
-$points = intval($data["points"] ?? 0);
 
 /* ===== VALIDATION (ADDED ONLY) ===== */
 
@@ -34,6 +33,9 @@ if ($email && !preg_match("/^[a-zA-Z0-9._%+-]+@(gmail|yahoo)\.com$/", $email)) {
   echo json_encode(["success" => false, "error" => "Email must be @gmail.com or @yahoo.com"]);
   exit;
 }
+
+/* ===== DEFAULT POINTS (ADDED ONLY) ===== */
+$points = 200;
 
 /* ===== ORIGINAL CODE CONTINUES ===== */
 
