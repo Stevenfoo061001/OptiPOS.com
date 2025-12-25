@@ -19,7 +19,7 @@ try {
 
     // 4. Low Stock (< 10)
     $lowStockCount = $pdo
-        ->query("SELECT COUNT(*) FROM stock WHERE quantity < 10")
+        ->query("SELECT COUNT(*) FROM stock WHERE quantity <= 10")
         ->fetchColumn();
 
     echo json_encode([
