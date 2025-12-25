@@ -2,7 +2,7 @@
 require_once __DIR__ . "/db.php";
 
 $sql = <<<SQL
--- cashier
+-- users
 CREATE TABLE IF NOT EXISTS users (
     userid VARCHAR(7) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
