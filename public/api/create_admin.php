@@ -50,15 +50,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-/* ========= 5. Password 长度校验 ========= */
-if (strlen($password) >= 6) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Password must be at least 6 characters'
-    ]);
-    exit;
-}
-
 /* ========= 6. Email 唯一校验 ========= */
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
 $stmt->execute([$email]);
@@ -72,10 +63,7 @@ if ((int)$stmt->fetchColumn() > 0) {
 }
 
 /* ========= 7. 生成 admin userid ========= */
-$userid = 'A' . substr(uniqid(), -6);
-
-/* ========= 8. 密码加密（重要） ========= */
-$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+$userid = 'U' . str_pad(6, 6, '0', STR_PAD_LEFT);
 
 /* ========= 9. 插入 admin ========= */
 $stmt = $pdo->prepare("
@@ -88,7 +76,7 @@ $stmt->execute([
     $name,
     $phone,
     $email,
-    $hashedPassword
+    $password
 ]);
 
 /* ========= 10. 自动登录 ========= */
