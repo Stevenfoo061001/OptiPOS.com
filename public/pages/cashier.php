@@ -135,8 +135,8 @@ if (empty($_SESSION['user'])) {
     <!-- HEADER -->
     <div class="header">
       <div>
-        <h1>Cashier (POS)</h1>
-        <p>Manage sales & checkout</p>
+        <h1>Cashier</h1>
+        <p></p>
       </div>
       <div class="role">
         <?= htmlspecialchars($_SESSION['user']['role'] ?? 'Staff') ?>

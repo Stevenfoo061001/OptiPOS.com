@@ -72,7 +72,7 @@ try {
   ");
 
   $nextId = $stmt->fetchColumn();
-  $memberId = 'M' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+  $memberId = 'M' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
 
   /* ---------- INSERT ---------- */
   $stmt = $pdo->prepare("

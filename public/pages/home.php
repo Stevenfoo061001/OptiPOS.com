@@ -95,7 +95,7 @@ require_once __DIR__ . '/../../config/config.php';
         <div class="header">
             <div>
                 <h1>Welcome to OptiPOS</h1>
-                <p>This is the beginner-friendly demo.</p>
+                <p></p>
             </div>
             <div class="role">
                <?= htmlspecialchars($_SESSION['user']['role'] ?? 'Staff') ?>
