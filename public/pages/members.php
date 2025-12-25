@@ -113,7 +113,7 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <input type="email" id="memberEmail">
 
       <label>Points</label>
-      <input type="number" id="memberPoints" value="0">
+      <input type="text" id="memberPoints" value="0" readonly>
     </div>
 
     <div class="modal-actions">

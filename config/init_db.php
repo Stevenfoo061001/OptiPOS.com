@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS stock (
     unitprice DECIMAL(8,2) NOT NULL CHECK (unitprice >= 0),
     quantity INT NOT NULL CHECK (quantity >= 0),
     category VARCHAR(30),
+    image VARCHAR(255),
     adminid VARCHAR(7),
 
     CONSTRAINT fk_stock_admin

@@ -13,7 +13,7 @@ if ($_SESSION['user']['role'] !== 'admin') {
 }
 
 $stmt = $pdo->query("
-    SELECT stockid, name, unitprice, quantity, category, image
+    SELECT stockid, name, unitprice, quantity, category,image 
     FROM stock
     ORDER BY name
 ");
@@ -94,7 +94,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <?php endforeach; ?>
     </select>
 
-    <!-- ✅ VIEW TOGGLE BUTTON -->
+    <!-- VIEW TOGGLE BUTTON -->
     <button type="button" class="pretty-btn" id="viewToggleBtn" onclick="toggleView()">
       🔳 Grid View
     </button>
@@ -217,7 +217,7 @@ function toggleView() {
 
   const isGrid = list.classList.toggle('grid-view');
 
-  // ✅ save preference
+  // save preference
   localStorage.setItem('productViewMode', isGrid ? 'grid' : 'list');
 
   // update button text
